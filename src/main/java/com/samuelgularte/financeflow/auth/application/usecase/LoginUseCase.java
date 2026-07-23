@@ -1,6 +1,7 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
+import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,7 +26,7 @@ public class LoginUseCase {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             return "Login successful";
         } catch (Exception e) {
-            throw new RuntimeException("Invalid credentials");
+            throw new InvalidCredentialsException();
         }
     }
 }

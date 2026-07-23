@@ -1,5 +1,7 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegisteredException;
+import com.samuelgularte.financeflow.auth.domain.exception.UsernameAlreadyExistsException;
 import com.samuelgularte.financeflow.auth.infrastructure.persistance.entity.User;
 import com.samuelgularte.financeflow.auth.application.usecase.request.SignUpRequest;
 import com.samuelgularte.financeflow.auth.infrastructure.persistance.repository.UserRepository;
@@ -21,10 +23,10 @@ public class SignUpUseCase {
 
     public String execute(SignUpRequest request) {
         if (userRepository.existsByUserName(request.getUserName())) {
-            throw new RuntimeException("Username already taken");
+            throw new UsernameAlreadyExistsException(request.getUserName());
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new EmailAlreadyRegisteredException(request.getEmail());
         }
 
         User user = new User(

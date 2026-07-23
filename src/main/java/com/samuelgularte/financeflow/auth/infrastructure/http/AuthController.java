@@ -28,12 +28,8 @@ public class AuthController {
 
     @PostMapping("/public/signin")
     public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest loginRequest){
-        try {
-            String message = loginUseCase.execute(loginRequest);
-            return ResponseEntity.ok(Map.of("message", message));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", e.getMessage()));
-        }
+        String message = loginUseCase.execute(loginRequest);
+        return ResponseEntity.ok(Map.of("message", message));
     }
 
     @PostMapping("/public/signup")
