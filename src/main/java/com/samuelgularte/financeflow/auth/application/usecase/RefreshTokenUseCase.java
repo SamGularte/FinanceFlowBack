@@ -2,14 +2,13 @@ package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.application.usecase.request.RefreshTokenRequest;
 import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
+import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.RefreshToken;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.RefreshTokenRepository;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -29,12 +28,12 @@ public class RefreshTokenUseCase {
     }
 
     public RefreshTokenResponse execute(RefreshTokenRequest request) {
-        RefreshToken oldToken = refreshTokenRepository.findByToken(request.getToken()).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token"));
+        RefreshToken oldToken = refreshTokenRepository.findByToken(request.getToken())
+                .orElseThrow(InvalidRefreshTokenException::new);
 
         if(oldToken.getExpiryDate().isBefore(Instant.now())){
             refreshTokenRepository.delete(oldToken);
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+            throw new InvalidRefreshTokenException();
         }
 
         refreshTokenRepository.delete(oldToken);
