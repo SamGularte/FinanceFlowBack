@@ -1,15 +1,10 @@
 package com.samuelgularte.financeflow.auth.infrastructure.http;
 
-import com.samuelgularte.financeflow.auth.application.usecase.ForgotPasswordUseCase;
-import com.samuelgularte.financeflow.auth.application.usecase.LoginUseCase;
-import com.samuelgularte.financeflow.auth.application.usecase.ResetPasswordUseCase;
-import com.samuelgularte.financeflow.auth.application.usecase.SignUpUseCase;
-import com.samuelgularte.financeflow.auth.application.usecase.request.ForgotPasswordRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.request.ResetPasswordRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.request.SignUpRequest;
+import com.samuelgularte.financeflow.auth.application.usecase.*;
+import com.samuelgularte.financeflow.auth.application.usecase.request.*;
 import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
 import com.samuelgularte.financeflow.auth.application.usecase.response.MessageResponse;
+import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,15 +18,18 @@ public class AuthController {
     private final LoginUseCase loginUseCase;
     private final ForgotPasswordUseCase forgotPasswordUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
+    private final RefreshTokenUseCase refreshTokenUseCase;
 
     public AuthController(SignUpUseCase signUpUseCase,
                           LoginUseCase loginUseCase,
                           ForgotPasswordUseCase forgotPasswordUseCase,
-                          ResetPasswordUseCase resetPasswordUseCase) {
+                          ResetPasswordUseCase resetPasswordUseCase,
+                          RefreshTokenUseCase refreshTokenUseCase) {
         this.signUpUseCase = signUpUseCase;
         this.loginUseCase = loginUseCase;
         this.forgotPasswordUseCase = forgotPasswordUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
+        this.refreshTokenUseCase = refreshTokenUseCase;
     }
 
     @PostMapping("/public/signin")
@@ -56,5 +54,11 @@ public class AuthController {
     public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest){
         MessageResponse message = new MessageResponse(resetPasswordUseCase.execute(resetPasswordRequest.getToken(), resetPasswordRequest.getNewPassword()));
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(message);
+    }
+
+    @PostMapping("/public/refresh-token")
+    public ResponseEntity<RefreshTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest){
+        RefreshTokenResponse response = refreshTokenUseCase.execute(refreshTokenRequest);
+        return ResponseEntity.ok(response);
     }
 }
