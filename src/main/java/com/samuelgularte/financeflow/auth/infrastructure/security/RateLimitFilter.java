@@ -27,8 +27,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
             throws IOException, ServletException {
 
         String key = request.getHeader("X-Forwarded-For");
-        if (key == null) {
+        if (key == null || key.isBlank()) {
             key = request.getRemoteAddr();
+        }
+        if (key == null || key.isBlank()) {
+            key = "unknown";
         }
 
         Instant now = Instant.now();
