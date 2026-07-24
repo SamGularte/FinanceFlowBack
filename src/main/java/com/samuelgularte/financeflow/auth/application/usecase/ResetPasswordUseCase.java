@@ -1,14 +1,13 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.domain.exception.InvalidResetTokenException;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.PasswordResetToken;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.PasswordResetTokenRepository;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 
@@ -29,12 +28,12 @@ public class ResetPasswordUseCase {
     }
 
     public String execute (String token, String newPassword) {
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired password reset token"));
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(InvalidResetTokenException::new);
 
         if(resetToken.getExpiryDate().isBefore(Instant.now())){
             passwordResetTokenRepository.delete(resetToken);
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired password reset token");
+            throw new InvalidResetTokenException();
         }
 
         User user = resetToken.getUser();

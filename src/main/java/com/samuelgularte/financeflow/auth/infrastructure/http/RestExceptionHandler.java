@@ -5,6 +5,7 @@ import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegistere
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
+import com.samuelgularte.financeflow.auth.domain.exception.InvalidResetTokenException;
 import com.samuelgularte.financeflow.auth.domain.exception.UsernameAlreadyExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,12 @@ public class RestExceptionHandler {
     public ResponseEntity<MessageResponse> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
         MessageResponse message = new MessageResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
+    }
+
+    @ExceptionHandler(InvalidResetTokenException.class)
+    public ResponseEntity<MessageResponse> handleInvalidResetToken(InvalidResetTokenException ex) {
+        MessageResponse message = new MessageResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
     @ExceptionHandler(EmailSendException.class)
