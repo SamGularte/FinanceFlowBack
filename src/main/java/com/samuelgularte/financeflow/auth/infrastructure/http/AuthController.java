@@ -19,17 +19,20 @@ public class AuthController {
     private final ForgotPasswordUseCase forgotPasswordUseCase;
     private final ResetPasswordUseCase resetPasswordUseCase;
     private final RefreshTokenUseCase refreshTokenUseCase;
+    private final LogoutUseCase logoutUseCase;
 
     public AuthController(SignUpUseCase signUpUseCase,
                           LoginUseCase loginUseCase,
                           ForgotPasswordUseCase forgotPasswordUseCase,
                           ResetPasswordUseCase resetPasswordUseCase,
-                          RefreshTokenUseCase refreshTokenUseCase) {
+                          RefreshTokenUseCase refreshTokenUseCase,
+                          LogoutUseCase logoutUseCase) {
         this.signUpUseCase = signUpUseCase;
         this.loginUseCase = loginUseCase;
         this.forgotPasswordUseCase = forgotPasswordUseCase;
         this.resetPasswordUseCase = resetPasswordUseCase;
         this.refreshTokenUseCase = refreshTokenUseCase;
+        this.logoutUseCase = logoutUseCase;
     }
 
     @PostMapping("/public/signin")
@@ -59,6 +62,12 @@ public class AuthController {
     @PostMapping("/public/refresh-token")
     public ResponseEntity<RefreshTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest){
         RefreshTokenResponse response = refreshTokenUseCase.execute(refreshTokenRequest);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/public/logout")
+    public ResponseEntity<MessageResponse> logout(@Valid @RequestBody LogoutRequest logoutRequest){
+        MessageResponse response = new MessageResponse(logoutUseCase.execute(logoutRequest));
         return ResponseEntity.ok(response);
     }
 }
