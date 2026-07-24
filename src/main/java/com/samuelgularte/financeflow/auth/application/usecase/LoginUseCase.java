@@ -43,7 +43,8 @@ public class LoginUseCase {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
             );
-            User user = userRepository.findByUserName(authentication.getName()).orElseThrow();
+            User user = userRepository.findByUserName(authentication.getName())
+                    .orElseThrow(InvalidCredentialsException::new);
             refreshTokenRepository.deleteByUser(user);
             String refreshTokenValue = UUID.randomUUID().toString();
             Instant expiryDate = Instant.now().plus(7, ChronoUnit.DAYS);
