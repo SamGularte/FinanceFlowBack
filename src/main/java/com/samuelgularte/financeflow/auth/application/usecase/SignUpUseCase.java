@@ -2,9 +2,9 @@ package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegisteredException;
 import com.samuelgularte.financeflow.auth.domain.exception.UsernameAlreadyExistsException;
-import com.samuelgularte.financeflow.auth.infrastructure.persistance.entity.User;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
 import com.samuelgularte.financeflow.auth.application.usecase.request.SignUpRequest;
-import com.samuelgularte.financeflow.auth.infrastructure.persistance.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

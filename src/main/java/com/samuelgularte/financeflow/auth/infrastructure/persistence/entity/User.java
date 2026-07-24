@@ -1,4 +1,4 @@
-package com.samuelgularte.financeflow.auth.infrastructure.persistance.entity;
+package com.samuelgularte.financeflow.auth.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;

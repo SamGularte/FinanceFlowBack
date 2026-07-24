@@ -1,6 +1,6 @@
-package com.samuelgularte.financeflow.auth.infrastructure.persistance.repository;
+package com.samuelgularte.financeflow.auth.infrastructure.persistence.repository;
 
-import com.samuelgularte.financeflow.auth.infrastructure.persistance.entity.User;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

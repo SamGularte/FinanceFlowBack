@@ -11,6 +11,9 @@ spring:
       ddl-auto: update
     show-sql: false
     open-in-view: false
+  app:
+    jwtSecret: ${JWT_SECRET}
+    jwtExpirationMs: 172800000
 logging:
   level:
     com.samuelgularte: DEBUG

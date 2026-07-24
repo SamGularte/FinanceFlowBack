@@ -4,6 +4,7 @@ import com.samuelgularte.financeflow.auth.application.usecase.LoginUseCase;
 import com.samuelgularte.financeflow.auth.application.usecase.SignUpUseCase;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
 import com.samuelgularte.financeflow.auth.application.usecase.request.SignUpRequest;
+import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,9 @@ public class AuthController {
     }
 
     @PostMapping("/public/signin")
-    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequest loginRequest){
-        String message = loginUseCase.execute(loginRequest);
-        return ResponseEntity.ok(Map.of("message", message));
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest){
+        LoginResponse response = loginUseCase.execute(loginRequest);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/public/signup")
