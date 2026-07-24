@@ -21,6 +21,8 @@ import java.io.IOException;
 @Component
 public class AuthTokenFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
 
@@ -55,6 +57,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             response.getWriter().write("{\"message\":\"User not found. Token is invalid.\"}");
             return;
         } catch (Exception e) {
+            logger.error("Could not authenticate: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

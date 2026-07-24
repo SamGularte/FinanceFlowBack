@@ -1,11 +1,9 @@
 package com.samuelgularte.financeflow.auth.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -13,8 +11,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
 @NoArgsConstructor
+@Getter
+@Setter
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "username"),
         @UniqueConstraint(columnNames = "email")
@@ -25,20 +24,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank
-    @Size(max = 50)
-    @Column(name = "username")
+    @Column(name = "username", nullable = false, length = 50)
     private String userName;
 
-    @NotBlank
-    @Size(max = 100)
-    @Email
-    @Column(name = "email")
+    @Column(name = "email", nullable = false, length = 100)
     private String email;
 
-    @NotBlank
-    @Size(max = 120)
-    @Column(name = "password")
+    @Column(name = "password", nullable = false, length = 120)
     private String password;
 
     @CreationTimestamp
