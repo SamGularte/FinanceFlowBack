@@ -1,6 +1,7 @@
 package com.samuelgularte.financeflow.auth.infrastructure.security.config;
 
 import com.samuelgularte.financeflow.auth.infrastructure.security.AuthTokenFilter;
+import com.samuelgularte.financeflow.auth.infrastructure.security.RateLimitFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,9 +20,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final AuthTokenFilter authTokenFilter;
+    private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(AuthTokenFilter authTokenFilter) {
+    public SecurityConfig(AuthTokenFilter authTokenFilter, RateLimitFilter rateLimitFilter) {
         this.authTokenFilter = authTokenFilter;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
@@ -32,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/public/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

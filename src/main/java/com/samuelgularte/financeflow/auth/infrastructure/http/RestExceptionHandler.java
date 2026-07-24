@@ -2,7 +2,6 @@ package com.samuelgularte.financeflow.auth.infrastructure.http;
 
 import com.samuelgularte.financeflow.auth.application.usecase.response.MessageResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegisteredException;
-import com.samuelgularte.financeflow.auth.domain.exception.EmailNotFoundException;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import com.samuelgularte.financeflow.auth.domain.exception.UsernameAlreadyExistsException;
@@ -37,12 +36,6 @@ public class RestExceptionHandler {
     public ResponseEntity<MessageResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
         MessageResponse message = new MessageResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
-    }
-
-    @ExceptionHandler(EmailNotFoundException.class)
-    public ResponseEntity<MessageResponse> handleEmailNotFoundException(EmailNotFoundException ex) {
-        MessageResponse message = new MessageResponse(ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }
 
     @ExceptionHandler(EmailSendException.class)
