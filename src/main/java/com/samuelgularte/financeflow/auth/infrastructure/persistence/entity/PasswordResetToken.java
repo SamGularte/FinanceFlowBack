@@ -27,8 +27,6 @@ public class PasswordResetToken {
     @Column(nullable = false)
     private Instant expiryDate;
 
-    private boolean used;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

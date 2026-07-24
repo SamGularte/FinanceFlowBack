@@ -1,6 +1,5 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
-import com.samuelgularte.financeflow.auth.domain.exception.EmailNotFoundException;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
 import com.samuelgularte.financeflow.auth.infrastructure.email.EmailService;
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.PasswordResetToken;
@@ -33,16 +32,19 @@ public class ForgotPasswordUseCase {
     }
 
     public String execute (String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() ->new EmailNotFoundException(email));
-        passwordResetTokenRepository.deleteByUser(user);
-        String token = generateToken();
-        Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
-        PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
-        passwordResetTokenRepository.save(resetToken);
-        try {
-            emailService.sendPasswordResetEmail(email, resetToken.getToken());
-        } catch (Exception e) {
-            throw new EmailSendException(email);
+        var userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            passwordResetTokenRepository.deleteByUser(user);
+            String token = generateToken();
+            Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
+            PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
+            passwordResetTokenRepository.save(resetToken);
+            try {
+                emailService.sendPasswordResetEmail(email, resetToken.getToken());
+            } catch (Exception e) {
+                throw new EmailSendException(email);
+            }
         }
         return "Password reset token sent";
     }

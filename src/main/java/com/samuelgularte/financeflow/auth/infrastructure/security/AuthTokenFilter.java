@@ -52,19 +52,25 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             }
         } catch (UsernameNotFoundException e) {
             SecurityContextHolder.clearContext();
-            response.setStatus(HttpStatus.UNAUTHORIZED.value());
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            response.getWriter().write("{\"message\":\"User not found. Token is invalid.\"}");
+            sendUnauthorizedResponse(response, "User not found. Token is invalid.");
             return;
         } catch (Exception e) {
             logger.error("Could not authenticate: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
+            sendUnauthorizedResponse(response, "Invalid or expired token");
+            return;
         }
 
         filterChain.doFilter(request, response);
     }
 
+    private void sendUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write("{\"message\":\"" + message + "\"}");
+    }
+
     private String parseJwt(HttpServletRequest request) {
-        String jwt = jwtUtils.getJwtFromHeader(request);
-        return jwt;
+        return jwtUtils.getJwtFromHeader(request);
     }
 }

@@ -7,6 +7,7 @@ import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -27,7 +28,7 @@ public class LoginUseCase {
             );
             String token = jwtUtils.generateTokenFromUsername(authentication.getName());
             return new LoginResponse(token);
-        } catch (Exception e) {
+        } catch (AuthenticationException e) {
             throw new InvalidCredentialsException();
         }
     }

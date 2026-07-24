@@ -1,64 +1,69 @@
 package com.samuelgularte.financeflow.auth.infrastructure.http;
 
+import com.samuelgularte.financeflow.auth.application.usecase.response.MessageResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegisteredException;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailNotFoundException;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import com.samuelgularte.financeflow.auth.domain.exception.UsernameAlreadyExistsException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
 
+    private static final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
+
     @ExceptionHandler(UsernameAlreadyExistsException.class)
-    public ResponseEntity<Map<String, String>> handleUsernameAlreadyExists(UsernameAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("message", ex.getMessage()));
+    public ResponseEntity<MessageResponse> handleUsernameAlreadyExists(UsernameAlreadyExistsException ex) {
+        MessageResponse message = new MessageResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(message);
     }
 
     @ExceptionHandler(EmailAlreadyRegisteredException.class)
-    public ResponseEntity<Map<String, String>> handleEmailAlreadyRegistered(EmailAlreadyRegisteredException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("message", ex.getMessage()));
+    public ResponseEntity<MessageResponse> handleEmailAlreadyRegistered(EmailAlreadyRegisteredException ex) {
+        MessageResponse message = new MessageResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(message);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("message", ex.getMessage()));
+    public ResponseEntity<MessageResponse> handleInvalidCredentials(InvalidCredentialsException ex) {
+        MessageResponse message = new MessageResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(message);
     }
 
     @ExceptionHandler(EmailNotFoundException.class)
-    public ResponseEntity<Map<String, String>> handleEmailNotFoundException(EmailNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("message", ex.getMessage()));
+    public ResponseEntity<MessageResponse> handleEmailNotFoundException(EmailNotFoundException ex) {
+        MessageResponse message = new MessageResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }
 
     @ExceptionHandler(EmailSendException.class)
-    public ResponseEntity<Map<String, String>> handleEmailSend(EmailSendException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", ex.getMessage()));
+    public ResponseEntity<MessageResponse> handleEmailSend(EmailSendException ex) {
+        MessageResponse message = new MessageResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
-        String message = ex.getBindingResult().getFieldErrors().stream()
+    public ResponseEntity<MessageResponse> handleValidation(MethodArgumentNotValidException ex) {
+        String errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .findFirst()
-                .orElse("Validation failed");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", message));
+                .collect(Collectors.joining("; "));
+        MessageResponse message = new MessageResponse(errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneral(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("message", "An unexpected error occurred"));
+    public ResponseEntity<MessageResponse> handleGeneral(Exception ex) {
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
+        MessageResponse message = new MessageResponse("An unexpected error occurred");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
     }
 }

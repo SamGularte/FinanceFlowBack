@@ -14,15 +14,15 @@ import java.time.Instant;
 
 @Service
 @Transactional
-public class ResetPasswordResetUseCase {
+public class ResetPasswordUseCase {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public ResetPasswordResetUseCase(UserRepository userRepository,
-                                     PasswordResetTokenRepository passwordResetTokenRepository,
-                                     PasswordEncoder passwordEncoder) {
+    public ResetPasswordUseCase(UserRepository userRepository,
+                                PasswordResetTokenRepository passwordResetTokenRepository,
+                                PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;
@@ -30,22 +30,18 @@ public class ResetPasswordResetUseCase {
 
     public String execute (String token, String newPassword) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid password reset token"));
-
-        if(resetToken.isUsed()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password reset token has already been used");
-        }
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired password reset token"));
 
         if(resetToken.getExpiryDate().isBefore(Instant.now())){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password reset token has expired");
+            passwordResetTokenRepository.delete(resetToken);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid or expired password reset token");
         }
 
         User user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
 
-        resetToken.setUsed(true);
-        passwordResetTokenRepository.save(resetToken);
+        passwordResetTokenRepository.delete(resetToken);
 
         return "Password updated";
     }
