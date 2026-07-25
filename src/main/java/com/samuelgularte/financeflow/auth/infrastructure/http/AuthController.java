@@ -2,9 +2,8 @@ package com.samuelgularte.financeflow.auth.infrastructure.http;
 
 import com.samuelgularte.financeflow.auth.application.usecase.*;
 import com.samuelgularte.financeflow.auth.application.usecase.request.*;
-import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
+import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.application.usecase.response.MessageResponse;
-import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,8 +35,8 @@ public class AuthController {
     }
 
     @PostMapping("/public/signin")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest){
-        LoginResponse response = loginUseCase.execute(loginRequest);
+    public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest loginRequest){
+        TokenResponse response = loginUseCase.execute(loginRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -60,8 +59,8 @@ public class AuthController {
     }
 
     @PostMapping("/public/refresh-token")
-    public ResponseEntity<RefreshTokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest){
-        RefreshTokenResponse response = refreshTokenUseCase.execute(refreshTokenRequest);
+    public ResponseEntity<TokenResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest){
+        TokenResponse response = refreshTokenUseCase.execute(refreshTokenRequest);
         return ResponseEntity.ok(response);
     }
 

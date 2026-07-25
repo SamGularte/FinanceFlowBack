@@ -2,7 +2,7 @@ package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.RefreshTokenRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
+import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -70,13 +70,13 @@ class RefreshTokenUseCaseTest {
     class Success {
 
         @Test
-        @DisplayName("should return RefreshTokenResponse with new access and refresh tokens")
+        @DisplayName("should return TokenResponse with new access and refresh tokens")
         void shouldReturnNewTokens() {
             RefreshToken oldToken = createValidToken();
             when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(oldToken));
             when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
-            RefreshTokenResponse response = refreshTokenUseCase.execute(buildRequest());
+            TokenResponse response = refreshTokenUseCase.execute(buildRequest());
 
             assertEquals(NEW_JWT, response.getToken());
             assertEquals("Bearer", response.getType());

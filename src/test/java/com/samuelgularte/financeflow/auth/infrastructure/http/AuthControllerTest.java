@@ -2,8 +2,7 @@ package com.samuelgularte.financeflow.auth.infrastructure.http;
 
 import com.samuelgularte.financeflow.auth.application.usecase.*;
 import com.samuelgularte.financeflow.auth.application.usecase.request.*;
-import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
-import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
+import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.*;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
@@ -141,7 +140,7 @@ class AuthControllerTest {
         @DisplayName("should return 200 with tokens when credentials are valid")
         void shouldReturn200() throws Exception {
             when(loginUseCase.execute(any(LoginRequest.class)))
-                    .thenReturn(new LoginResponse("jwt-token", "refresh-token-uuid"));
+                    .thenReturn(new TokenResponse("jwt-token", "refresh-token-uuid"));
 
             mockMvc.perform(post("/auth/public/signin")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -235,7 +234,7 @@ class AuthControllerTest {
         @DisplayName("should return 200 when token is valid")
         void shouldReturn200() throws Exception {
             when(refreshTokenUseCase.execute(any(RefreshTokenRequest.class)))
-                    .thenReturn(new RefreshTokenResponse("new-jwt", "new-refresh-uuid"));
+                    .thenReturn(new TokenResponse("new-jwt", "new-refresh-uuid"));
 
             mockMvc.perform(post("/auth/public/refresh-token")
                             .contentType(MediaType.APPLICATION_JSON)

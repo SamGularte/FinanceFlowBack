@@ -2,7 +2,7 @@ package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.RefreshTokenRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
+import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -28,7 +28,7 @@ public class RefreshTokenUseCase {
         this.tokenProvider = tokenProvider;
     }
 
-    public RefreshTokenResponse execute(RefreshTokenRequest request) {
+    public TokenResponse execute(RefreshTokenRequest request) {
         RefreshToken oldToken = refreshTokenRepository.findByToken(TokenHasher.hash(request.getToken()))
                 .orElseThrow(InvalidRefreshTokenException::new);
 
@@ -48,6 +48,6 @@ public class RefreshTokenUseCase {
         RefreshToken newRefreshToken = new RefreshToken(newHashedToken, newExpiry, user);
         refreshTokenRepository.save(newRefreshToken);
 
-        return new RefreshTokenResponse(newAccessToken, newRawToken);
+        return new TokenResponse(newAccessToken, newRawToken);
     }
 }

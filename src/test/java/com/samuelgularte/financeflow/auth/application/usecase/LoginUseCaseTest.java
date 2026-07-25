@@ -2,7 +2,7 @@ package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
+import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -96,11 +96,11 @@ class LoginUseCaseTest {
     class Success {
 
         @Test
-        @DisplayName("should return LoginResponse with JWT and refresh token")
-        void shouldReturnLoginResponseWithTokens() {
+        @DisplayName("should return TokenResponse with JWT and refresh token")
+        void shouldReturnTokenResponseWithTokens() {
             mockSuccess();
 
-            LoginResponse response = loginUseCase.execute(buildValidRequest());
+            TokenResponse response = loginUseCase.execute(buildValidRequest());
 
             assertEquals(JWT_TOKEN, response.getToken());
             assertEquals("Bearer", response.getType());
@@ -142,7 +142,7 @@ class LoginUseCaseTest {
         void shouldLoginWithEmail() {
             mockSuccess();
 
-            LoginResponse response = loginUseCase.execute(buildEmailRequest());
+            TokenResponse response = loginUseCase.execute(buildEmailRequest());
 
             assertEquals(JWT_TOKEN, response.getToken());
             verify(authenticationManager).authenticate(

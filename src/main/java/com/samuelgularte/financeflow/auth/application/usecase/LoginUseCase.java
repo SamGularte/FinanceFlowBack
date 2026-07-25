@@ -2,7 +2,7 @@ package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
+import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -39,7 +39,7 @@ public class LoginUseCase {
         this.tokenProvider = tokenProvider;
     }
 
-    public LoginResponse execute(LoginRequest loginRequest) {
+    public TokenResponse execute(LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getLogin(), loginRequest.getPassword())
@@ -53,7 +53,7 @@ public class LoginUseCase {
             RefreshToken refreshToken = new RefreshToken(hashedToken, expiryDate, user);
             refreshTokenRepository.save(refreshToken);
             String token = tokenProvider.generateTokenFromUsername(authentication.getName());
-            return new LoginResponse(token, rawToken);
+            return new TokenResponse(token, rawToken);
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException();
         }
