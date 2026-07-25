@@ -2,7 +2,6 @@ package com.samuelgularte.financeflow.auth.infrastructure.persistence.repository
 
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
-import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,13 +28,9 @@ class RefreshTokenRepositoryTest {
         return entityManager.persistFlushFind(new User(userName, email, "encoded-pass"));
     }
 
-    private RefreshToken persistToken(String rawTokenValue, User user) {
-        RefreshToken token = new RefreshToken(TokenHasher.hash(rawTokenValue), Instant.now().plus(7, ChronoUnit.DAYS), user);
+    private RefreshToken persistToken(String tokenValue, User user) {
+        RefreshToken token = new RefreshToken(tokenValue, Instant.now().plus(7, ChronoUnit.DAYS), user);
         return entityManager.persistFlushFind(token);
-    }
-
-    private String lookupHash(String rawTokenValue) {
-        return TokenHasher.hash(rawTokenValue);
     }
 
     @Nested
@@ -48,17 +43,17 @@ class RefreshTokenRepositoryTest {
             User user = persistUser("joao", "joao@email.com");
             persistToken("token-123", user);
 
-            Optional<RefreshToken> found = refreshTokenRepository.findByToken(lookupHash("token-123"));
+            Optional<RefreshToken> found = refreshTokenRepository.findByToken("token-123");
 
             assertTrue(found.isPresent());
-            assertEquals(lookupHash("token-123"), found.get().getToken());
+            assertEquals("token-123", found.get().getToken());
             assertEquals(user.getId(), found.get().getUser().getId());
         }
 
         @Test
         @DisplayName("should return empty when token does not exist")
         void shouldReturnEmptyWhenNotExists() {
-            Optional<RefreshToken> found = refreshTokenRepository.findByToken(lookupHash("naoexiste"));
+            Optional<RefreshToken> found = refreshTokenRepository.findByToken("naoexiste");
 
             assertTrue(found.isEmpty());
         }
@@ -75,10 +70,10 @@ class RefreshTokenRepositoryTest {
             persistToken("token-1", user);
             persistToken("token-2", user);
 
-            refreshTokenRepository.deleteByToken(lookupHash("token-1"));
+            refreshTokenRepository.deleteByToken("token-1");
 
-            assertTrue(refreshTokenRepository.findByToken(lookupHash("token-1")).isEmpty());
-            assertTrue(refreshTokenRepository.findByToken(lookupHash("token-2")).isPresent());
+            assertTrue(refreshTokenRepository.findByToken("token-1").isEmpty());
+            assertTrue(refreshTokenRepository.findByToken("token-2").isPresent());
         }
     }
 
@@ -95,8 +90,8 @@ class RefreshTokenRepositoryTest {
 
             refreshTokenRepository.deleteByUser(user);
 
-            assertTrue(refreshTokenRepository.findByToken(lookupHash("token-1")).isEmpty());
-            assertTrue(refreshTokenRepository.findByToken(lookupHash("token-2")).isEmpty());
+            assertTrue(refreshTokenRepository.findByToken("token-1").isEmpty());
+            assertTrue(refreshTokenRepository.findByToken("token-2").isEmpty());
         }
 
         @Test
@@ -109,8 +104,8 @@ class RefreshTokenRepositoryTest {
 
             refreshTokenRepository.deleteByUser(userA);
 
-            assertTrue(refreshTokenRepository.findByToken(lookupHash("token-a")).isEmpty());
-            assertTrue(refreshTokenRepository.findByToken(lookupHash("token-b")).isPresent());
+            assertTrue(refreshTokenRepository.findByToken("token-a").isEmpty());
+            assertTrue(refreshTokenRepository.findByToken("token-b").isPresent());
         }
     }
 }

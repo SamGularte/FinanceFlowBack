@@ -7,7 +7,6 @@ import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenEx
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
-import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -73,7 +72,7 @@ class RefreshTokenUseCaseTest {
         @DisplayName("should return RefreshTokenResponse with new access and refresh tokens")
         void shouldReturnNewTokens() {
             RefreshToken oldToken = createValidToken();
-            when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(oldToken));
+            when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.of(oldToken));
             when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             RefreshTokenResponse response = refreshTokenUseCase.execute(buildRequest());
@@ -81,15 +80,14 @@ class RefreshTokenUseCaseTest {
             assertEquals(NEW_JWT, response.getToken());
             assertEquals("Bearer", response.getType());
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
-            assertDoesNotThrow(() -> UUID.fromString(response.getRefreshToken()));
-            assertEquals(TokenHasher.hash(response.getRefreshToken()), refreshTokenCaptor.getValue().getToken());
+            assertEquals(refreshTokenCaptor.getValue().getToken(), response.getRefreshToken());
         }
 
         @Test
         @DisplayName("should delete old token before saving new one")
         void shouldDeleteOldToken() {
             RefreshToken oldToken = createValidToken();
-            when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(oldToken));
+            when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.of(oldToken));
             when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             refreshTokenUseCase.execute(buildRequest());
@@ -103,15 +101,14 @@ class RefreshTokenUseCaseTest {
         @DisplayName("should generate UUID refresh token with 7-day expiry")
         void shouldGenerateUuidWith7DayExpiry() {
             RefreshToken oldToken = createValidToken();
-            when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(oldToken));
+            when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.of(oldToken));
             when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             refreshTokenUseCase.execute(buildRequest());
 
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
             RefreshToken savedToken = refreshTokenCaptor.getValue();
-            assertEquals(64, savedToken.getToken().length());
-            assertTrue(savedToken.getToken().matches("[0-9a-f]{64}"));
+            assertDoesNotThrow(() -> UUID.fromString(savedToken.getToken()));
             Instant expectedExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
             long diffSeconds = ChronoUnit.SECONDS.between(savedToken.getExpiryDate(), expectedExpiry);
             assertTrue(Math.abs(diffSeconds) < 5);
@@ -125,7 +122,7 @@ class RefreshTokenUseCaseTest {
         @Test
         @DisplayName("should throw InvalidRefreshTokenException when token is not found")
         void shouldThrowWhenTokenNotFound() {
-            when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.empty());
+            when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.empty());
 
             InvalidRefreshTokenException ex = assertThrows(InvalidRefreshTokenException.class,
                     () -> refreshTokenUseCase.execute(buildRequest()));
@@ -139,7 +136,7 @@ class RefreshTokenUseCaseTest {
         @DisplayName("should throw InvalidRefreshTokenException when token is expired")
         void shouldThrowWhenTokenExpired() {
             RefreshToken expiredToken = createExpiredToken();
-            when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(expiredToken));
+            when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.of(expiredToken));
 
             InvalidRefreshTokenException ex = assertThrows(InvalidRefreshTokenException.class,
                     () -> refreshTokenUseCase.execute(buildRequest()));

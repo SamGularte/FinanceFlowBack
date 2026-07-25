@@ -8,7 +8,6 @@ import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
 import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
-import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -47,13 +46,12 @@ public class LoginUseCase {
             User user = userRepository.findByUserName(authentication.getName())
                     .orElseThrow(InvalidCredentialsException::new);
             refreshTokenRepository.deleteByUser(user);
-            String rawToken = UUID.randomUUID().toString();
-            String hashedToken = TokenHasher.hash(rawToken);
+            String refreshTokenValue = UUID.randomUUID().toString();
             Instant expiryDate = Instant.now().plus(7, ChronoUnit.DAYS);
-            RefreshToken refreshToken = new RefreshToken(hashedToken, expiryDate, user);
+            RefreshToken refreshToken = new RefreshToken(refreshTokenValue, expiryDate, user);
             refreshTokenRepository.save(refreshToken);
             String token = tokenProvider.generateTokenFromUsername(authentication.getName());
-            return new LoginResponse(token, rawToken);
+            return new LoginResponse(token, refreshTokenValue);
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException();
         }
