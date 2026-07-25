@@ -5,6 +5,7 @@ import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.PasswordResetTokenRepository;
 import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class ResetPasswordUseCase {
     }
 
     public String execute (String token, String newPassword) {
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
+        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(TokenHasher.hash(token))
                 .orElseThrow(InvalidResetTokenException::new);
 
         if(resetToken.getExpiryDate().isBefore(Instant.now())){

@@ -32,6 +32,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.clock = clock;
     }
 
+    public void reset() {
+        requests.clear();
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {

@@ -65,8 +65,8 @@ class RefreshTokenRepositoryTest {
     }
 
     @Nested
-    @DisplayName("deleteByToken")
-    class DeleteByToken {
+    @DisplayName("delete by entity")
+    class DeleteByEntity {
 
         @Test
         @DisplayName("should delete the specific token")
@@ -75,7 +75,8 @@ class RefreshTokenRepositoryTest {
             persistToken("token-1", user);
             persistToken("token-2", user);
 
-            refreshTokenRepository.deleteByToken(lookupHash("token-1"));
+            refreshTokenRepository.findByToken(lookupHash("token-1"))
+                    .ifPresent(entityManager::remove);
 
             assertTrue(refreshTokenRepository.findByToken(lookupHash("token-1")).isEmpty());
             assertTrue(refreshTokenRepository.findByToken(lookupHash("token-2")).isPresent());

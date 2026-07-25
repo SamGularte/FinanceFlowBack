@@ -6,6 +6,7 @@ import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.PasswordResetTokenRepository;
 import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -36,12 +37,13 @@ public class ForgotPasswordUseCase {
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             passwordResetTokenRepository.deleteByUser(user);
-            String token = generateToken();
+            String rawToken = generateToken();
+            String hashedToken = TokenHasher.hash(rawToken);
             Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
-            PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
+            PasswordResetToken resetToken = new PasswordResetToken(hashedToken, expiryDate, user);
             passwordResetTokenRepository.save(resetToken);
             try {
-                emailSender.sendPasswordResetEmail(email, resetToken.getToken());
+                emailSender.sendPasswordResetEmail(email, rawToken);
             } catch (Exception e) {
                 throw new EmailSendException(email);
             }

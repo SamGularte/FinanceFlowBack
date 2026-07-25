@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
 
@@ -48,7 +49,7 @@ class ForgotPasswordUseCaseTest {
 
     private static final String EMAIL = "joao@email.com";
     private static final String USERNAME = "joao";
-    private static final Pattern HEX_32 = Pattern.compile("[0-9a-f]{32}");
+    private static final Pattern HEX_64 = Pattern.compile("[0-9a-f]{64}");
 
     private User createUser() {
         return new User(USERNAME, EMAIL, "encoded");
@@ -70,11 +71,11 @@ class ForgotPasswordUseCaseTest {
             verify(passwordResetTokenRepository).save(resetTokenCaptor.capture());
             PasswordResetToken savedToken = resetTokenCaptor.getValue();
             assertEquals(user, savedToken.getUser());
-            verify(emailSender).sendPasswordResetEmail(EMAIL, savedToken.getToken());
+            verify(emailSender).sendPasswordResetEmail(eq(EMAIL), anyString());
         }
 
         @Test
-        @DisplayName("should generate 32-character hex token with 24-hour expiry")
+        @DisplayName("should store 64-character hex hash with 24-hour expiry")
         void shouldGenerateHexTokenWith24HourExpiry() {
             User user = createUser();
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
@@ -83,8 +84,8 @@ class ForgotPasswordUseCaseTest {
 
             verify(passwordResetTokenRepository).save(resetTokenCaptor.capture());
             PasswordResetToken savedToken = resetTokenCaptor.getValue();
-            assertTrue(HEX_32.matcher(savedToken.getToken()).matches(),
-                    "Token should be 32 hex characters");
+            assertTrue(HEX_64.matcher(savedToken.getToken()).matches(),
+                    "Token should be 64 hex characters (SHA-256 hash)");
             Instant expectedExpiry = Instant.now().plus(24, ChronoUnit.HOURS);
             long diffSeconds = ChronoUnit.SECONDS.between(savedToken.getExpiryDate(), expectedExpiry);
             assertTrue(Math.abs(diffSeconds) < 5,

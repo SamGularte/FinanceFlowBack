@@ -5,6 +5,7 @@ import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.PasswordResetTokenRepository;
 import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -43,6 +44,7 @@ class ResetPasswordUseCaseTest {
     private ArgumentCaptor<User> userCaptor;
 
     private static final String TOKEN = "reset-token-value";
+    private static final String HASHED_TOKEN = TokenHasher.hash(TOKEN);
     private static final String NEW_PASSWORD = "novaSenha123";
     private static final String ENCODED_PASSWORD = "$2a$10$encoded";
     private static final String USERNAME = "joao";
@@ -67,7 +69,7 @@ class ResetPasswordUseCaseTest {
         @DisplayName("should encode password, save user, delete token and return message")
         void shouldUpdatePasswordAndDeleteToken() {
             PasswordResetToken resetToken = createValidToken();
-            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.of(resetToken));
+            when(passwordResetTokenRepository.findByToken(HASHED_TOKEN)).thenReturn(Optional.of(resetToken));
             when(passwordEncoder.encode(NEW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
             String result = resetPasswordUseCase.execute(TOKEN, NEW_PASSWORD);
@@ -83,7 +85,7 @@ class ResetPasswordUseCaseTest {
         @DisplayName("should delete the reset token after updating the password")
         void shouldDeleteTokenAfterUpdate() {
             PasswordResetToken resetToken = createValidToken();
-            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.of(resetToken));
+            when(passwordResetTokenRepository.findByToken(HASHED_TOKEN)).thenReturn(Optional.of(resetToken));
             when(passwordEncoder.encode(NEW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
             resetPasswordUseCase.execute(TOKEN, NEW_PASSWORD);
@@ -100,7 +102,7 @@ class ResetPasswordUseCaseTest {
         @Test
         @DisplayName("should throw InvalidResetTokenException when token is not found")
         void shouldThrowWhenTokenNotFound() {
-            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.empty());
+            when(passwordResetTokenRepository.findByToken(HASHED_TOKEN)).thenReturn(Optional.empty());
 
             InvalidResetTokenException ex = assertThrows(InvalidResetTokenException.class,
                     () -> resetPasswordUseCase.execute(TOKEN, NEW_PASSWORD));
@@ -114,7 +116,7 @@ class ResetPasswordUseCaseTest {
         @DisplayName("should throw InvalidResetTokenException when token is expired and delete it")
         void shouldThrowWhenTokenExpired() {
             PasswordResetToken expiredToken = createExpiredToken();
-            when(passwordResetTokenRepository.findByToken(TOKEN)).thenReturn(Optional.of(expiredToken));
+            when(passwordResetTokenRepository.findByToken(HASHED_TOKEN)).thenReturn(Optional.of(expiredToken));
 
             InvalidResetTokenException ex = assertThrows(InvalidResetTokenException.class,
                     () -> resetPasswordUseCase.execute(TOKEN, NEW_PASSWORD));
