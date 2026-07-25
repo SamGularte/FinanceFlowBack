@@ -7,6 +7,9 @@ import java.util.HexFormat;
 public class TokenHasher {
 
     public static String hash(String rawToken) {
+        if (rawToken == null) {
+            throw new IllegalArgumentException("rawToken must not be null");
+        }
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hash = md.digest(rawToken.getBytes());
