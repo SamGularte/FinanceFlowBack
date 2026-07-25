@@ -41,7 +41,7 @@ public class LoginUseCase {
     public LoginResponse execute(LoginRequest loginRequest) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword())
+                    new UsernamePasswordAuthenticationToken(loginRequest.getLogin(), loginRequest.getPassword())
             );
             User user = userRepository.findByUserName(authentication.getName())
                     .orElseThrow(InvalidCredentialsException::new);

@@ -58,18 +58,26 @@ class LoginUseCaseTest {
     private ArgumentCaptor<RefreshToken> refreshTokenCaptor;
 
     private static final String USERNAME = "joao";
+    private static final String EMAIL = "joao@email.com";
     private static final String PASSWORD = "senha123";
     private static final String JWT_TOKEN = "jwt.token.here";
 
     private LoginRequest buildValidRequest() {
         LoginRequest request = new LoginRequest();
-        request.setUsername(USERNAME);
+        request.setLogin(USERNAME);
+        request.setPassword(PASSWORD);
+        return request;
+    }
+
+    private LoginRequest buildEmailRequest() {
+        LoginRequest request = new LoginRequest();
+        request.setLogin(EMAIL);
         request.setPassword(PASSWORD);
         return request;
     }
 
     private User createUser() {
-        return new User(USERNAME, "joao@email.com", "encoded");
+        return new User(USERNAME, EMAIL, "encoded");
     }
 
     private User mockSuccess() {
@@ -124,6 +132,19 @@ class LoginUseCaseTest {
             Instant expectedExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
             long diffSeconds = ChronoUnit.SECONDS.between(savedToken.getExpiryDate(), expectedExpiry);
             assertTrue(Math.abs(diffSeconds) < 5);
+        }
+
+        @Test
+        @DisplayName("should login successfully when using email instead of username")
+        void shouldLoginWithEmail() {
+            mockSuccess();
+
+            LoginResponse response = loginUseCase.execute(buildEmailRequest());
+
+            assertEquals(JWT_TOKEN, response.getToken());
+            verify(authenticationManager).authenticate(
+                    new UsernamePasswordAuthenticationToken(EMAIL, PASSWORD));
+            verify(userRepository).findByUserName(USERNAME);
         }
     }
 
