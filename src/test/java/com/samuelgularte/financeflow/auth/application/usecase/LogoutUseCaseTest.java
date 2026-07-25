@@ -3,6 +3,7 @@ package com.samuelgularte.financeflow.auth.application.usecase;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LogoutRequest;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,8 +45,8 @@ class LogoutUseCaseTest {
         @Test
         @DisplayName("should delete token and return message when token exists")
         void shouldDeleteTokenWhenExists() {
-            RefreshToken foundToken = new RefreshToken(TOKEN_VALUE, Instant.now().plus(7, ChronoUnit.DAYS), null);
-            when(refreshTokenRepository.findByToken(TOKEN_VALUE)).thenReturn(Optional.of(foundToken));
+            RefreshToken foundToken = new RefreshToken(TokenHasher.hash(TOKEN_VALUE), Instant.now().plus(7, ChronoUnit.DAYS), null);
+            when(refreshTokenRepository.findByToken(TokenHasher.hash(TOKEN_VALUE))).thenReturn(Optional.of(foundToken));
 
             String result = logoutUseCase.execute(buildRequest());
 
@@ -61,7 +62,7 @@ class LogoutUseCaseTest {
         @Test
         @DisplayName("should return message without deleting when token does not exist")
         void shouldNotDeleteWhenTokenNotFound() {
-            when(refreshTokenRepository.findByToken(TOKEN_VALUE)).thenReturn(Optional.empty());
+            when(refreshTokenRepository.findByToken(TokenHasher.hash(TOKEN_VALUE))).thenReturn(Optional.empty());
 
             String result = logoutUseCase.execute(buildRequest());
 

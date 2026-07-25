@@ -8,6 +8,7 @@ import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
 import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -104,7 +105,8 @@ class LoginUseCaseTest {
             assertEquals(JWT_TOKEN, response.getToken());
             assertEquals("Bearer", response.getType());
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
-            assertEquals(refreshTokenCaptor.getValue().getToken(), response.getRefreshToken());
+            assertDoesNotThrow(() -> UUID.fromString(response.getRefreshToken()));
+            assertEquals(TokenHasher.hash(response.getRefreshToken()), refreshTokenCaptor.getValue().getToken());
         }
 
         @Test
@@ -128,7 +130,8 @@ class LoginUseCaseTest {
 
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
             RefreshToken savedToken = refreshTokenCaptor.getValue();
-            assertDoesNotThrow(() -> UUID.fromString(savedToken.getToken()));
+            assertEquals(64, savedToken.getToken().length());
+            assertTrue(savedToken.getToken().matches("[0-9a-f]{64}"));
             Instant expectedExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
             long diffSeconds = ChronoUnit.SECONDS.between(savedToken.getExpiryDate(), expectedExpiry);
             assertTrue(Math.abs(diffSeconds) < 5);

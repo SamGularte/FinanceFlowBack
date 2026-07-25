@@ -7,6 +7,7 @@ import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenEx
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,7 @@ public class RefreshTokenUseCase {
     }
 
     public RefreshTokenResponse execute(RefreshTokenRequest request) {
-        RefreshToken oldToken = refreshTokenRepository.findByToken(request.getToken())
+        RefreshToken oldToken = refreshTokenRepository.findByToken(TokenHasher.hash(request.getToken()))
                 .orElseThrow(InvalidRefreshTokenException::new);
 
         if(oldToken.getExpiryDate().isBefore(Instant.now())){
@@ -41,11 +42,12 @@ public class RefreshTokenUseCase {
         User user = oldToken.getUser();
         String newAccessToken = tokenProvider.generateTokenFromUsername(user.getUserName());
 
-        String newRefreshTokenValue = UUID.randomUUID().toString();
+        String newRawToken = UUID.randomUUID().toString();
+        String newHashedToken = TokenHasher.hash(newRawToken);
         Instant newExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
-        RefreshToken newRefreshToken = new RefreshToken(newRefreshTokenValue, newExpiry, user);
+        RefreshToken newRefreshToken = new RefreshToken(newHashedToken, newExpiry, user);
         refreshTokenRepository.save(newRefreshToken);
 
-        return new RefreshTokenResponse(newAccessToken, newRefreshTokenValue);
+        return new RefreshTokenResponse(newAccessToken, newRawToken);
     }
 }
