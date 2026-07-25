@@ -8,7 +8,6 @@ import com.samuelgularte.financeflow.auth.domain.exception.*;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import com.samuelgularte.financeflow.auth.infrastructure.security.RateLimitFilter;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -58,14 +57,6 @@ class AuthControllerTest {
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
 
-    @Autowired
-    private RateLimitFilter rateLimitFilter;
-
-    @BeforeEach
-    void setUp() {
-        rateLimitFilter.reset();
-    }
-
     static class TestConfig {
         @Bean
         SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -73,6 +64,11 @@ class AuthControllerTest {
                     .csrf(csrf -> csrf.disable())
                     .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
                     .build();
+        }
+
+        @Bean
+        RateLimitFilter rateLimitFilter() {
+            return new RateLimitFilter();
         }
     }
 
@@ -140,7 +136,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signin")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"login\":\"joao\",\"password\":\"pass123\"}"))
+                            .content("{\"username\":\"joao\",\"password\":\"pass123\"}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.token").value("jwt-token"))
                     .andExpect(jsonPath("$.refreshToken").value("refresh-token-uuid"))
@@ -155,7 +151,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signin")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"login\":\"joao\",\"password\":\"wrong\"}"))
+                            .content("{\"username\":\"joao\",\"password\":\"wrong\"}"))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.message").value("Invalid Credentials"));
         }
