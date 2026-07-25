@@ -1,12 +1,12 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.PasswordEncoderPort;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegisteredException;
 import com.samuelgularte.financeflow.auth.domain.exception.UsernameAlreadyExistsException;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import com.samuelgularte.financeflow.auth.application.usecase.request.SignUpRequest;
 import jakarta.transaction.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,9 +14,9 @@ import org.springframework.stereotype.Service;
 public class SignUpUseCase {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoderPort passwordEncoder;
 
-    public SignUpUseCase(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public SignUpUseCase(UserRepository userRepository, PasswordEncoderPort passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }

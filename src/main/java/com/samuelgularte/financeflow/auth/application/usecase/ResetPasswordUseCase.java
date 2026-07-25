@@ -1,5 +1,6 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.PasswordEncoderPort;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidResetTokenException;
 import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -7,7 +8,6 @@ import com.samuelgularte.financeflow.auth.domain.repository.PasswordResetTokenRe
 import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import jakarta.transaction.Transactional;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -18,11 +18,11 @@ public class ResetPasswordUseCase {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final PasswordEncoderPort passwordEncoder;
 
     public ResetPasswordUseCase(UserRepository userRepository,
                                 PasswordResetTokenRepository passwordResetTokenRepository,
-                                PasswordEncoder passwordEncoder) {
+                                PasswordEncoderPort passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.passwordEncoder = passwordEncoder;

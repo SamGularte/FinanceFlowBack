@@ -1,5 +1,6 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.PasswordEncoderPort;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidResetTokenException;
 import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -15,7 +16,6 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -35,7 +35,7 @@ class ResetPasswordUseCaseTest {
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Mock
-    private PasswordEncoder passwordEncoder;
+    private PasswordEncoderPort passwordEncoder;
 
     @InjectMocks
     private ResetPasswordUseCase resetPasswordUseCase;

@@ -1,5 +1,6 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.AuthenticationPort;
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
 import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
@@ -19,10 +20,6 @@ import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -38,7 +35,7 @@ import static org.mockito.Mockito.*;
 class LoginUseCaseTest {
 
     @Mock
-    private AuthenticationManager authenticationManager;
+    private AuthenticationPort authenticationPort;
 
     @Mock
     private RefreshTokenRepository refreshTokenRepository;
@@ -48,9 +45,6 @@ class LoginUseCaseTest {
 
     @Mock
     private TokenProvider tokenProvider;
-
-    @Mock
-    private Authentication authentication;
 
     @InjectMocks
     private LoginUseCase loginUseCase;
@@ -83,9 +77,7 @@ class LoginUseCaseTest {
 
     private User mockSuccess() {
         User user = createUser();
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(authentication);
-        when(authentication.getName()).thenReturn(USERNAME);
+        when(authenticationPort.authenticate(anyString(), anyString())).thenReturn(USERNAME);
         when(userRepository.findByUserName(USERNAME)).thenReturn(Optional.of(user));
         when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(JWT_TOKEN);
         return user;
@@ -145,8 +137,7 @@ class LoginUseCaseTest {
             TokenResponse response = loginUseCase.execute(buildEmailRequest());
 
             assertEquals(JWT_TOKEN, response.getToken());
-            verify(authenticationManager).authenticate(
-                    new UsernamePasswordAuthenticationToken(EMAIL, PASSWORD));
+            verify(authenticationPort).authenticate(EMAIL, PASSWORD);
             verify(userRepository).findByUserName(USERNAME);
         }
     }
@@ -159,8 +150,8 @@ class LoginUseCaseTest {
         @DisplayName("should throw InvalidCredentialsException when authentication fails")
         void shouldThrowWhenInvalidCredentials() {
             LoginRequest request = buildValidRequest();
-            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                    .thenThrow(mock(AuthenticationException.class));
+            when(authenticationPort.authenticate(USERNAME, PASSWORD))
+                    .thenThrow(new InvalidCredentialsException());
 
             InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class, () -> loginUseCase.execute(request));
 
@@ -172,9 +163,7 @@ class LoginUseCaseTest {
         @DisplayName("should throw InvalidCredentialsException when authenticated user is not found in database")
         void shouldThrowWhenUserNotFoundAfterAuthentication() {
             LoginRequest request = buildValidRequest();
-            when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                    .thenReturn(authentication);
-            when(authentication.getName()).thenReturn(USERNAME);
+            when(authenticationPort.authenticate(USERNAME, PASSWORD)).thenReturn(USERNAME);
             when(userRepository.findByUserName(USERNAME)).thenReturn(Optional.empty());
 
             InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class, () -> loginUseCase.execute(request));
