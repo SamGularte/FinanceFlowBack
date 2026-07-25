@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.auth.infrastructure.persistence.repository;
 
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
+import com.samuelgularte.financeflow.auth.domain.model.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserRepositoryTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserJpaRepository userRepository;
 
     @Autowired
     private TestEntityManager entityManager;

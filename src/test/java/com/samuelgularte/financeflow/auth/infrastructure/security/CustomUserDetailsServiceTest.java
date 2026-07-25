@@ -1,7 +1,7 @@
 package com.samuelgularte.financeflow.auth.infrastructure.security;
 
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

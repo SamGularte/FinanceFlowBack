@@ -1,12 +1,12 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.RefreshTokenRequest;
 import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.RefreshToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.RefreshTokenRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
+import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -19,12 +19,12 @@ import java.util.UUID;
 public class RefreshTokenUseCase {
 
     private final RefreshTokenRepository refreshTokenRepository;
-    private final JwtUtils jwtUtils;
+    private final TokenProvider tokenProvider;
 
     public RefreshTokenUseCase(RefreshTokenRepository refreshTokenRepository,
-                               JwtUtils jwtUtils) {
+                                TokenProvider tokenProvider) {
         this.refreshTokenRepository = refreshTokenRepository;
-        this.jwtUtils = jwtUtils;
+        this.tokenProvider = tokenProvider;
     }
 
     public RefreshTokenResponse execute(RefreshTokenRequest request) {
@@ -39,7 +39,7 @@ public class RefreshTokenUseCase {
         refreshTokenRepository.delete(oldToken);
 
         User user = oldToken.getUser();
-        String newAccessToken = jwtUtils.generateTokenFromUsername(user.getUserName());
+        String newAccessToken = tokenProvider.generateTokenFromUsername(user.getUserName());
 
         String newRefreshTokenValue = UUID.randomUUID().toString();
         Instant newExpiry = Instant.now().plus(7, ChronoUnit.DAYS);

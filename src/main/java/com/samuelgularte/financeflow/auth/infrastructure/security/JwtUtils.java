@@ -1,5 +1,6 @@
 package com.samuelgularte.financeflow.auth.infrastructure.security;
 
+import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -13,7 +14,7 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
-public class JwtUtils {
+public class JwtUtils implements TokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 

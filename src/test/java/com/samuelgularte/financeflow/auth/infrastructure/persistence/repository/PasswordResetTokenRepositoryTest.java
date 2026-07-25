@@ -1,7 +1,7 @@
 package com.samuelgularte.financeflow.auth.infrastructure.persistence.repository;
 
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.PasswordResetToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
+import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PasswordResetTokenRepositoryTest {
 
     @Autowired
-    private PasswordResetTokenRepository passwordResetTokenRepository;
+    private PasswordResetTokenJpaRepository passwordResetTokenRepository;
 
     @Autowired
     private TestEntityManager entityManager;

@@ -1,12 +1,13 @@
 package com.samuelgularte.financeflow.auth.infrastructure.email;
 
+import com.samuelgularte.financeflow.auth.application.port.EmailSender;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-public class EmailService {
+public class EmailService implements EmailSender {
 
     private final JavaMailSender javaMailSender;
     private final String from;

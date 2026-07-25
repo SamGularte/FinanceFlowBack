@@ -1,11 +1,11 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.EmailSender;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
-import com.samuelgularte.financeflow.auth.infrastructure.email.EmailService;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.PasswordResetToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.PasswordResetTokenRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.PasswordResetTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -38,7 +38,7 @@ class ForgotPasswordUseCaseTest {
     private PasswordResetTokenRepository passwordResetTokenRepository;
 
     @Mock
-    private EmailService emailService;
+    private EmailSender emailSender;
 
     @InjectMocks
     private ForgotPasswordUseCase forgotPasswordUseCase;
@@ -70,7 +70,7 @@ class ForgotPasswordUseCaseTest {
             verify(passwordResetTokenRepository).save(resetTokenCaptor.capture());
             PasswordResetToken savedToken = resetTokenCaptor.getValue();
             assertEquals(user, savedToken.getUser());
-            verify(emailService).sendPasswordResetEmail(EMAIL, savedToken.getToken());
+            verify(emailSender).sendPasswordResetEmail(EMAIL, savedToken.getToken());
         }
 
         @Test
@@ -117,7 +117,7 @@ class ForgotPasswordUseCaseTest {
             String result = forgotPasswordUseCase.execute(EMAIL);
 
             assertEquals("Password reset token sent", result);
-            verifyNoInteractions(passwordResetTokenRepository, emailService);
+            verifyNoInteractions(passwordResetTokenRepository, emailSender);
         }
     }
 
@@ -130,7 +130,7 @@ class ForgotPasswordUseCaseTest {
         void shouldThrowWhenEmailFails() {
             User user = createUser();
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
-            doThrow(new RuntimeException("SMTP error")).when(emailService)
+            doThrow(new RuntimeException("SMTP error")).when(emailSender)
                     .sendPasswordResetEmail(anyString(), anyString());
 
             EmailSendException ex = assertThrows(EmailSendException.class,

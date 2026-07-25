@@ -1,12 +1,12 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.RefreshTokenRequest;
 import com.samuelgularte.financeflow.auth.application.usecase.response.RefreshTokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.RefreshToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.RefreshTokenRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
+import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ class RefreshTokenUseCaseTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Mock
-    private JwtUtils jwtUtils;
+    private TokenProvider tokenProvider;
 
     @InjectMocks
     private RefreshTokenUseCase refreshTokenUseCase;
@@ -73,7 +73,7 @@ class RefreshTokenUseCaseTest {
         void shouldReturnNewTokens() {
             RefreshToken oldToken = createValidToken();
             when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.of(oldToken));
-            when(jwtUtils.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
+            when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             RefreshTokenResponse response = refreshTokenUseCase.execute(buildRequest());
 
@@ -88,7 +88,7 @@ class RefreshTokenUseCaseTest {
         void shouldDeleteOldToken() {
             RefreshToken oldToken = createValidToken();
             when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.of(oldToken));
-            when(jwtUtils.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
+            when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             refreshTokenUseCase.execute(buildRequest());
 
@@ -102,7 +102,7 @@ class RefreshTokenUseCaseTest {
         void shouldGenerateUuidWith7DayExpiry() {
             RefreshToken oldToken = createValidToken();
             when(refreshTokenRepository.findByToken(OLD_TOKEN_VALUE)).thenReturn(Optional.of(oldToken));
-            when(jwtUtils.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
+            when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             refreshTokenUseCase.execute(buildRequest());
 
@@ -129,7 +129,7 @@ class RefreshTokenUseCaseTest {
 
             assertEquals("Invalid refresh token", ex.getMessage());
             verify(refreshTokenRepository, never()).delete(any());
-            verifyNoInteractions(jwtUtils);
+            verifyNoInteractions(tokenProvider);
         }
 
         @Test
@@ -143,7 +143,7 @@ class RefreshTokenUseCaseTest {
 
             assertEquals("Invalid refresh token", ex.getMessage());
             verify(refreshTokenRepository).delete(same(expiredToken));
-            verify(jwtUtils, never()).generateTokenFromUsername(any());
+            verify(tokenProvider, never()).generateTokenFromUsername(any());
             verify(refreshTokenRepository, never()).save(any());
         }
     }

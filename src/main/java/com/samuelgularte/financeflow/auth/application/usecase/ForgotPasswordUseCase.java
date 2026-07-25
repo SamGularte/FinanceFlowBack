@@ -1,11 +1,11 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.EmailSender;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
-import com.samuelgularte.financeflow.auth.infrastructure.email.EmailService;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.PasswordResetToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.PasswordResetTokenRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.PasswordResetTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -19,16 +19,16 @@ public class ForgotPasswordUseCase {
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
-    private final EmailService emailService;
+    private final EmailSender emailSender;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
     public ForgotPasswordUseCase(UserRepository userRepository,
                                  PasswordResetTokenRepository passwordResetTokenRepository,
-                                 EmailService emailService) {
+                                 EmailSender emailSender) {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
-        this.emailService = emailService;
+        this.emailSender = emailSender;
     }
 
     public String execute (String email) {
@@ -41,7 +41,7 @@ public class ForgotPasswordUseCase {
             PasswordResetToken resetToken = new PasswordResetToken(token, expiryDate, user);
             passwordResetTokenRepository.save(resetToken);
             try {
-                emailService.sendPasswordResetEmail(email, resetToken.getToken());
+                emailSender.sendPasswordResetEmail(email, resetToken.getToken());
             } catch (Exception e) {
                 throw new EmailSendException(email);
             }

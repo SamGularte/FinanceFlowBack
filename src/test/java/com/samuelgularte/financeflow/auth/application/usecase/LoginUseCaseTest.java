@@ -1,13 +1,13 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
 import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.RefreshToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.RefreshTokenRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
+import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ class LoginUseCaseTest {
     private UserRepository userRepository;
 
     @Mock
-    private JwtUtils jwtUtils;
+    private TokenProvider tokenProvider;
 
     @Mock
     private Authentication authentication;
@@ -86,7 +86,7 @@ class LoginUseCaseTest {
                 .thenReturn(authentication);
         when(authentication.getName()).thenReturn(USERNAME);
         when(userRepository.findByUserName(USERNAME)).thenReturn(Optional.of(user));
-        when(jwtUtils.generateTokenFromUsername(USERNAME)).thenReturn(JWT_TOKEN);
+        when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(JWT_TOKEN);
         return user;
     }
 
@@ -162,7 +162,7 @@ class LoginUseCaseTest {
             InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class, () -> loginUseCase.execute(request));
 
             assertEquals("Invalid Credentials", ex.getMessage());
-            verifyNoInteractions(userRepository, refreshTokenRepository, jwtUtils);
+            verifyNoInteractions(userRepository, refreshTokenRepository, tokenProvider);
         }
 
         @Test
@@ -177,7 +177,7 @@ class LoginUseCaseTest {
             InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class, () -> loginUseCase.execute(request));
 
             assertEquals("Invalid Credentials", ex.getMessage());
-            verifyNoInteractions(refreshTokenRepository, jwtUtils);
+            verifyNoInteractions(refreshTokenRepository, tokenProvider);
         }
     }
 }

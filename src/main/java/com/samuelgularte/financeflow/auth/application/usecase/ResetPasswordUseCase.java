@@ -1,10 +1,10 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidResetTokenException;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.PasswordResetToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.PasswordResetTokenRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.PasswordResetTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.auth.infrastructure.security;
 
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
+import com.samuelgularte.financeflow.auth.domain.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 

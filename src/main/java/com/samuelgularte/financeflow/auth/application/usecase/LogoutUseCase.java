@@ -1,7 +1,7 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
 import com.samuelgularte.financeflow.auth.application.usecase.request.LogoutRequest;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.RefreshTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

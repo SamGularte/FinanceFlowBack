@@ -1,13 +1,13 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
 import com.samuelgularte.financeflow.auth.application.usecase.response.LoginResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.RefreshToken;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.User;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.RefreshTokenRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.persistence.repository.UserRepository;
-import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
+import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
+import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -26,16 +26,16 @@ public class LoginUseCase {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserRepository userRepository;
-    private final JwtUtils jwtUtils;
+    private final TokenProvider tokenProvider;
 
     public LoginUseCase(AuthenticationManager authenticationManager,
                         RefreshTokenRepository refreshTokenRepository,
                         UserRepository userRepository,
-                        JwtUtils jwtUtils) {
+                        TokenProvider tokenProvider) {
         this.authenticationManager = authenticationManager;
         this.refreshTokenRepository = refreshTokenRepository;
         this.userRepository = userRepository;
-        this.jwtUtils = jwtUtils;
+        this.tokenProvider = tokenProvider;
     }
 
     public LoginResponse execute(LoginRequest loginRequest) {
@@ -50,7 +50,7 @@ public class LoginUseCase {
             Instant expiryDate = Instant.now().plus(7, ChronoUnit.DAYS);
             RefreshToken refreshToken = new RefreshToken(refreshTokenValue, expiryDate, user);
             refreshTokenRepository.save(refreshToken);
-            String token = jwtUtils.generateTokenFromUsername(authentication.getName());
+            String token = tokenProvider.generateTokenFromUsername(authentication.getName());
             return new LoginResponse(token, refreshTokenValue);
         } catch (AuthenticationException e) {
             throw new InvalidCredentialsException();

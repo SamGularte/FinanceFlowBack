@@ -1,4 +1,4 @@
-package com.samuelgularte.financeflow.auth.infrastructure.persistence.entity;
+package com.samuelgularte.financeflow.auth.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -12,10 +12,10 @@ import java.util.UUID;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "refresh_tokens", uniqueConstraints = {
+@Table(name = "password_reset_tokens", uniqueConstraints = {
         @UniqueConstraint(columnNames = "token"),
 })
-public class RefreshToken {
+public class PasswordResetToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,14 +24,14 @@ public class RefreshToken {
     @Column(unique = true, nullable = false, name = "token")
     private String token;
 
+    @Column(nullable = false)
+    private Instant expiryDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(updatable = false)
-    private Instant expiryDate;
-
-    public RefreshToken(String token, Instant expiryDate, User user) {
+    public PasswordResetToken(String token, Instant expiryDate, User user) {
         this.token = token;
         this.expiryDate = expiryDate;
         this.user = user;

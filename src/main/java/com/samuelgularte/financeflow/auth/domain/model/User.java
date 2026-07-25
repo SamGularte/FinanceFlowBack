@@ -1,4 +1,4 @@
-package com.samuelgularte.financeflow.auth.infrastructure.persistence.entity;
+package com.samuelgularte.financeflow.auth.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Getter;
