@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Deque;
@@ -21,6 +22,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final Map<String, Deque<Instant>> requests = new ConcurrentHashMap<>();
     private static final int MAX_REQUESTS = 5;
     private static final Duration WINDOW = Duration.ofMinutes(1);
+    private final Clock clock;
+
+    public RateLimitFilter() {
+        this.clock = Clock.systemUTC();
+    }
+
+    public RateLimitFilter(Clock clock) {
+        this.clock = clock;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
@@ -34,7 +44,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             key = "unknown";
         }
 
-        Instant now = Instant.now();
+        Instant now = clock.instant();
         Deque<Instant> timestamps = requests.computeIfAbsent(key, k -> new LinkedList<>());
 
         synchronized (timestamps) {
