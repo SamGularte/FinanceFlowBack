@@ -146,5 +146,35 @@ class RateLimitFilterTest {
 
             verify(chain).doFilter(request, response);
         }
+
+        @Test
+        @DisplayName("should apply rate limit to refresh-token path")
+        void shouldRateLimitRefreshToken() throws Exception {
+            RateLimitFilter rateLimitFilter = new RateLimitFilter();
+            String ip = "10.0.0.2";
+            HttpServletRequest request = mock(HttpServletRequest.class);
+            when(request.getRequestURI()).thenReturn("/auth/public/refresh-token");
+            when(request.getHeader("X-Forwarded-For")).thenReturn(ip);
+            HttpServletResponse response = mock(HttpServletResponse.class);
+            FilterChain chain = mock(FilterChain.class);
+
+            for (int i = 0; i < 5; i++) {
+                rateLimitFilter.doFilter(request, response, chain);
+            }
+
+            verify(chain, times(5)).doFilter(any(), any());
+            verify(response, never()).setStatus(429);
+
+            HttpServletRequest sixthRequest = mock(HttpServletRequest.class);
+            when(sixthRequest.getRequestURI()).thenReturn("/auth/public/refresh-token");
+            when(sixthRequest.getHeader("X-Forwarded-For")).thenReturn(ip);
+            HttpServletResponse sixthResponse = mock(HttpServletResponse.class);
+            StringWriter stringWriter = new StringWriter();
+            when(sixthResponse.getWriter()).thenReturn(new PrintWriter(stringWriter));
+
+            rateLimitFilter.doFilter(sixthRequest, sixthResponse, chain);
+
+            verify(sixthResponse).setStatus(429);
+        }
     }
 }

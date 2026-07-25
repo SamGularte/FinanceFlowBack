@@ -64,6 +64,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return !path.equals("/auth/public/signin") && !path.equals("/auth/public/forgot-password");
+        return !path.equals("/auth/public/signin") && !path.equals("/auth/public/forgot-password") && !path.equals("/auth/public/refresh-token");
     }
 }
