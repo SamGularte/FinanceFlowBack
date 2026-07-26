@@ -25,6 +25,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
 logging:
   level:
     com.samuelgularte: DEBUG
