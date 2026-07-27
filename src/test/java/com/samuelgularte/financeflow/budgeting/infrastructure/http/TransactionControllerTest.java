@@ -4,6 +4,7 @@ import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
+import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessAudioUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessTextUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.security.web.SecurityFilterChain;
@@ -22,8 +24,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -36,6 +40,9 @@ class TransactionControllerTest {
 
     @MockitoBean
     private ProcessTextUseCase processTextUseCase;
+
+    @MockitoBean
+    private ProcessAudioUseCase processAudioUseCase;
 
     @MockitoBean
     private JwtUtils jwtUtils;
@@ -61,6 +68,25 @@ class TransactionControllerTest {
         var user = new User("test", "test@email.com", "pass");
         user.setId(userId);
         userDetails = new CustomUserDetails(user);
+    }
+
+    @Nested
+    @DisplayName("POST /transactions/audio")
+    class PostAudio {
+
+        @Test
+        @DisplayName("should return 200 with success message")
+        void shouldReturnSuccessMessage() throws Exception {
+            when(processAudioUseCase.execute(any(), eq(userId))).thenReturn("Transação registrada via áudio!");
+
+            var audioFile = new MockMultipartFile("file", "audio.mp3", "audio/mpeg", "fake-audio".getBytes());
+
+            mockMvc.perform(multipart("/transactions/audio")
+                            .file(audioFile)
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Transação registrada via áudio!"));
+        }
     }
 
     @Nested
