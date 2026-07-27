@@ -1,5 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.entity;
 
+import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import org.junit.jupiter.api.DisplayName;
@@ -12,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TransactionEntityTest {
 
+    private final UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000099");
+
     @Nested
     @DisplayName("from")
     class From {
@@ -19,14 +22,17 @@ class TransactionEntityTest {
         @Test
         @DisplayName("should map all fields from domain to entity")
         void shouldMapAllFields() {
-            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET);
+            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId);
+            User user = new User();
+            user.setId(userId);
 
-            TransactionEntity entity = TransactionEntity.from(transaction);
+            TransactionEntity entity = TransactionEntity.from(transaction, user);
 
             assertEquals(transaction.id(), entity.getId());
             assertEquals(transaction.description(), entity.getDescription());
             assertEquals(transaction.amount(), entity.getAmount());
             assertEquals(transaction.category(), entity.getCategory());
+            assertEquals(userId, entity.getUser().getId());
         }
     }
 
@@ -37,8 +43,10 @@ class TransactionEntityTest {
         @Test
         @DisplayName("should map all fields from entity to domain")
         void shouldMapAllFields() {
+            User user = new User();
+            user.setId(userId);
             UUID id = UUID.randomUUID();
-            TransactionEntity entity = new TransactionEntity(id, "Farmácia", 1500, Category.PHARMACY);
+            TransactionEntity entity = new TransactionEntity(id, "Farmácia", 1500, Category.PHARMACY, user);
 
             Transaction transaction = entity.toDomain();
 
@@ -46,6 +54,7 @@ class TransactionEntityTest {
             assertEquals("Farmácia", transaction.description());
             assertEquals(1500, transaction.amount());
             assertEquals(Category.PHARMACY, transaction.category());
+            assertEquals(userId, transaction.userId());
         }
     }
 
@@ -56,9 +65,11 @@ class TransactionEntityTest {
         @Test
         @DisplayName("should preserve all fields after from then toDomain")
         void shouldPreserveFields() {
-            Transaction original = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET);
+            Transaction original = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId);
+            User user = new User();
+            user.setId(userId);
 
-            TransactionEntity entity = TransactionEntity.from(original);
+            TransactionEntity entity = TransactionEntity.from(original, user);
             Transaction result = entity.toDomain();
 
             assertEquals(original, result);

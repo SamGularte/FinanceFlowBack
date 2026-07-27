@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TransactionTest {
 
+    private final UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000099");
+
     @Nested
     @DisplayName("create")
     class Create {
@@ -17,25 +19,26 @@ class TransactionTest {
         @Test
         @DisplayName("should generate a non-null UUID")
         void shouldGenerateNonNullId() {
-            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET);
+            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId);
             assertNotNull(transaction.id());
         }
 
         @Test
         @DisplayName("should set description, amount and category correctly")
         void shouldSetFieldsCorrectly() {
-            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET);
+            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId);
 
             assertEquals("Compra mercado", transaction.description());
             assertEquals(5000, transaction.amount());
             assertEquals(Category.SUPERMARKET, transaction.category());
+            assertEquals(userId, transaction.userId());
         }
 
         @Test
         @DisplayName("should generate unique IDs for each transaction")
         void shouldGenerateUniqueIds() {
-            Transaction tx1 = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET);
-            Transaction tx2 = Transaction.create("Farmácia", 1500, Category.PHARMACY);
+            Transaction tx1 = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId);
+            Transaction tx2 = Transaction.create("Farmácia", 1500, Category.PHARMACY, userId);
 
             assertNotEquals(tx1.id(), tx2.id());
         }
@@ -48,7 +51,7 @@ class TransactionTest {
         @Test
         @DisplayName("should allow zero amount")
         void shouldAllowZeroAmount() {
-            Transaction transaction = Transaction.create("Isento", 0, Category.OTHER);
+            Transaction transaction = Transaction.create("Isento", 0, Category.OTHER, userId);
 
             assertEquals(0, transaction.amount());
         }
@@ -56,7 +59,7 @@ class TransactionTest {
         @Test
         @DisplayName("should allow negative amount")
         void shouldAllowNegativeAmount() {
-            Transaction transaction = Transaction.create("Estorno", -5000, Category.OTHER);
+            Transaction transaction = Transaction.create("Estorno", -5000, Category.OTHER, userId);
 
             assertEquals(-5000, transaction.amount());
         }
@@ -64,7 +67,7 @@ class TransactionTest {
         @Test
         @DisplayName("should allow empty description")
         void shouldAllowEmptyDescription() {
-            Transaction transaction = Transaction.create("", 1000, Category.OTHER);
+            Transaction transaction = Transaction.create("", 1000, Category.OTHER, userId);
 
             assertEquals("", transaction.description());
         }
@@ -72,7 +75,7 @@ class TransactionTest {
         @Test
         @DisplayName("should allow null description")
         void shouldAllowNullDescription() {
-            Transaction transaction = Transaction.create(null, 1000, Category.OTHER);
+            Transaction transaction = Transaction.create(null, 1000, Category.OTHER, userId);
 
             assertNull(transaction.description());
         }
@@ -87,11 +90,11 @@ class TransactionTest {
         void shouldImplementEquals() {
             Transaction tx1 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER
+                    "Compra", 1000, Category.OTHER, userId
             );
             Transaction tx2 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER
+                    "Compra", 1000, Category.OTHER, userId
             );
 
             assertEquals(tx1, tx2);
@@ -102,11 +105,11 @@ class TransactionTest {
         void shouldImplementHashCode() {
             Transaction tx1 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER
+                    "Compra", 1000, Category.OTHER, userId
             );
             Transaction tx2 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER
+                    "Compra", 1000, Category.OTHER, userId
             );
 
             assertEquals(tx1.hashCode(), tx2.hashCode());

@@ -1,7 +1,10 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.repository;
 
+import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -10,15 +13,28 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(TransactionRepositoryImpl.class)
-class vTransactionRepositoryImplTest {
+class TransactionRepositoryImplTest {
 
     @Autowired
     private TransactionRepositoryImpl repository;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    private User testUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = new User("testuser", "test@email.com", "password");
+        entityManager.persist(testUser);
+        entityManager.flush();
+    }
 
     @Nested
     @DisplayName("save")
@@ -27,7 +43,7 @@ class vTransactionRepositoryImplTest {
         @Test
         @DisplayName("should persist and return the transaction")
         void shouldPersistAndReturn() {
-            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET);
+            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId());
 
             Transaction saved = repository.save(transaction);
 
@@ -35,6 +51,7 @@ class vTransactionRepositoryImplTest {
             assertEquals(transaction.description(), saved.description());
             assertEquals(transaction.amount(), saved.amount());
             assertEquals(transaction.category(), saved.category());
+            assertEquals(testUser.getId(), saved.userId());
         }
     }
 
@@ -45,13 +62,15 @@ class vTransactionRepositoryImplTest {
         @Test
         @DisplayName("should update fields when saving with existing ID")
         void shouldUpdateExistingTransaction() {
-            Transaction transaction = repository.save(Transaction.create("Compra mercado", 5000, Category.SUPERMARKET));
+            Transaction transaction = repository.save(
+                    Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
             Transaction updated = new Transaction(
                     transaction.id(),
                     "Compra mercado atualizada",
                     6000,
-                    Category.SUPERMARKET
+                    Category.SUPERMARKET,
+                    testUser.getId()
             );
             Transaction result = repository.save(updated);
 
@@ -68,8 +87,10 @@ class vTransactionRepositoryImplTest {
         @Test
         @DisplayName("should return transactions matching the category")
         void shouldReturnMatchingTransactions() {
-            Transaction mercado = repository.save(Transaction.create("Compra mercado", 5000, Category.SUPERMARKET));
-            Transaction remedio = repository.save(Transaction.create("Farmácia", 1500, Category.PHARMACY));
+            Transaction mercado = repository.save(
+                    Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+            Transaction remedio = repository.save(
+                    Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
 
             List<Transaction> result = repository.findAllByCategory(Category.PHARMACY);
 
@@ -80,7 +101,7 @@ class vTransactionRepositoryImplTest {
         @Test
         @DisplayName("should return empty list when no transaction matches the category")
         void shouldReturnEmptyWhenNoMatch() {
-            repository.save(Transaction.create("Compra mercado", 5000, Category.SUPERMARKET));
+            repository.save(Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
             List<Transaction> result = repository.findAllByCategory(Category.AUTO);
 
@@ -90,9 +111,9 @@ class vTransactionRepositoryImplTest {
         @Test
         @DisplayName("should return multiple transactions of the same category")
         void shouldReturnMultipleMatchingTransactions() {
-            repository.save(Transaction.create("Farmácia 1", 1000, Category.PHARMACY));
-            repository.save(Transaction.create("Farmácia 2", 2000, Category.PHARMACY));
-            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET));
+            repository.save(Transaction.create("Farmácia 1", 1000, Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Farmácia 2", 2000, Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
             List<Transaction> result = repository.findAllByCategory(Category.PHARMACY);
 
