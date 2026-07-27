@@ -8,6 +8,7 @@ import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -22,8 +23,11 @@ public class PersistTransactionTool {
     @Tool(name = "persist_transaction", description = "Persiste uma nova transacao financeira")
     public TransactionOutput execute(PersistTransactionInput input, ToolContext context) {
         UUID userId = UUID.fromString((String) context.getContext().get("userId"));
+        LocalDateTime createdAt = input.createdAt() != null && !input.createdAt().isBlank()
+                ? LocalDateTime.parse(input.createdAt())
+                : LocalDateTime.now();
         Transaction transaction = transactionRepository.save(
-                Transaction.create(input.description(), input.amount(), input.category(), userId)
+                Transaction.create(input.description(), input.amount(), input.category(), userId, createdAt)
         );
         return TransactionOutput.from(transaction);
     }

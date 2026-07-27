@@ -11,5 +11,8 @@ public record PersistTransactionInput(
         long amount,
 
         @ToolParam(description = "Categoria da transacao")
-        Category category
+        Category category,
+
+        @ToolParam(description = "Data da transacao no formato ISO 8601 (yyyy-MM-dd'T'HH:mm:ss). Se nao foi informada, deixe vazio.")
+        String createdAt
 ) {}

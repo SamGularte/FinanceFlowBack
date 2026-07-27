@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class TransactionTest {
 
     private final UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000099");
+    private final LocalDateTime now = LocalDateTime.of(2026, 7, 27, 10, 0, 0);
 
     @Nested
     @DisplayName("create")
@@ -32,6 +34,7 @@ class TransactionTest {
             assertEquals(5000, transaction.amount());
             assertEquals(Category.SUPERMARKET, transaction.category());
             assertEquals(userId, transaction.userId());
+            assertNotNull(transaction.createdAt());
         }
 
         @Test
@@ -41,6 +44,14 @@ class TransactionTest {
             Transaction tx2 = Transaction.create("Farmácia", 1500, Category.PHARMACY, userId);
 
             assertNotEquals(tx1.id(), tx2.id());
+        }
+
+        @Test
+        @DisplayName("should accept custom createdAt")
+        void shouldAcceptCustomCreatedAt() {
+            Transaction transaction = Transaction.create("Compra", 5000, Category.SUPERMARKET, userId, now);
+
+            assertEquals(now, transaction.createdAt());
         }
     }
 
@@ -90,11 +101,11 @@ class TransactionTest {
         void shouldImplementEquals() {
             Transaction tx1 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER, userId
+                    "Compra", 1000, Category.OTHER, userId, now
             );
             Transaction tx2 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER, userId
+                    "Compra", 1000, Category.OTHER, userId, now
             );
 
             assertEquals(tx1, tx2);
@@ -105,11 +116,11 @@ class TransactionTest {
         void shouldImplementHashCode() {
             Transaction tx1 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER, userId
+                    "Compra", 1000, Category.OTHER, userId, now
             );
             Transaction tx2 = new Transaction(
                     UUID.fromString("00000000-0000-0000-0000-000000000001"),
-                    "Compra", 1000, Category.OTHER, userId
+                    "Compra", 1000, Category.OTHER, userId, now
             );
 
             assertEquals(tx1.hashCode(), tx2.hashCode());

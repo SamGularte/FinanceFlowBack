@@ -9,14 +9,16 @@ public record TransactionOutput(
         String id,
         String description,
         String category,
-        double valor
+        double valor,
+        String createdAt
 ) {
     public static TransactionOutput from(Transaction transaction) {
         return new TransactionOutput(
                 transaction.id().toString(),
                 transaction.description(),
                 transaction.category().name(),
-                BigDecimal.valueOf(transaction.amount(), 2).setScale(2, RoundingMode.HALF_UP).doubleValue()
+                BigDecimal.valueOf(transaction.amount(), 2).setScale(2, RoundingMode.HALF_UP).doubleValue(),
+                transaction.createdAt().toString()
         );
     }
 }

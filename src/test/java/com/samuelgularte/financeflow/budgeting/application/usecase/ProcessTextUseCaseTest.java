@@ -14,6 +14,7 @@ import org.springframework.core.io.Resource;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,7 +52,7 @@ class ProcessTextUseCaseTest {
         @DisplayName("should return null when ChatClient returns null content")
         void shouldReturnNullWhenContentNull() {
             when(chatClient.prompt()).thenReturn(requestSpec);
-            when(requestSpec.system(anyString())).thenReturn(requestSpec);
+            when(requestSpec.system(any(Consumer.class))).thenReturn(requestSpec);
             when(requestSpec.user(anyString())).thenReturn(requestSpec);
             when(requestSpec.tools(any())).thenReturn(requestSpec);
             when(requestSpec.toolContext(any())).thenReturn(requestSpec);
@@ -67,7 +68,7 @@ class ProcessTextUseCaseTest {
         @DisplayName("should call ChatClient with system prompt, user text and toolContext")
         void shouldCallChatClientWithToolContext() {
             when(chatClient.prompt()).thenReturn(requestSpec);
-            when(requestSpec.system(anyString())).thenReturn(requestSpec);
+            when(requestSpec.system(any(Consumer.class))).thenReturn(requestSpec);
             when(requestSpec.user(anyString())).thenReturn(requestSpec);
             when(requestSpec.tools(any())).thenReturn(requestSpec);
             when(requestSpec.toolContext(any())).thenReturn(requestSpec);
@@ -77,7 +78,7 @@ class ProcessTextUseCaseTest {
             String result = useCase.execute("Gastei 50 reais em comida", userId);
 
             assertEquals("Transação registrada com sucesso", result);
-            verify(requestSpec).system("Você é um assistente financeiro.");
+            verify(requestSpec).system(any(Consumer.class));
             verify(requestSpec).user("Gastei 50 reais em comida");
             verify(requestSpec).tools(persistTransactionTool);
             verify(requestSpec).toolContext(Map.of("userId", userId.toString()));

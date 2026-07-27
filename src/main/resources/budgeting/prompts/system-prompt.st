@@ -18,3 +18,8 @@ Categorias disponíveis:
 - CLOTHING: roupas, calçados e acessórios
 - HOME: itens para casa, decoração, móveis e eletrodomésticos
 - OTHER: use APENAS quando nenhuma outra categoria se aplicar
+
+Instruções para a data:
+- Identifique a data da transação a partir do texto do usuário (ex: "ontem", "hoje", "semana passada", "10/03/2026")
+- Converta para o formato ISO 8601 (yyyy-MM-dd'T'HH:mm:ss) e preencha o campo createdAt
+- Se o usuário não informar nenhuma data, deixe o campo createdAt vazio

@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.model.ToolContext;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -49,7 +50,7 @@ class PersistTransactionToolTest {
         @Test
         @DisplayName("should extract userId from ToolContext and pass to Transaction.create")
         void shouldExtractUserIdFromContext() {
-            var input = new PersistTransactionInput("Compra mercado", 5000, Category.SUPERMARKET);
+            var input = new PersistTransactionInput("Compra mercado", 5000, Category.SUPERMARKET, null);
             when(transactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             tool.execute(input, toolContext);
@@ -60,12 +61,25 @@ class PersistTransactionToolTest {
             assertEquals("Compra mercado", saved.description());
             assertEquals(5000, saved.amount());
             assertEquals(Category.SUPERMARKET, saved.category());
+            assertNotNull(saved.createdAt());
+        }
+
+        @Test
+        @DisplayName("should use provided createdAt when informed")
+        void shouldUseProvidedCreatedAt() {
+            var input = new PersistTransactionInput("Compra", 1000, Category.OTHER, "2026-07-26T15:30:00");
+            when(transactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            tool.execute(input, toolContext);
+
+            verify(transactionRepository).save(transactionCaptor.capture());
+            assertEquals(LocalDateTime.of(2026, 7, 26, 15, 30, 0), transactionCaptor.getValue().createdAt());
         }
 
         @Test
         @DisplayName("should throw when ToolContext has no userId")
         void shouldThrowWhenUserIdMissing() {
-            var input = new PersistTransactionInput("Compra", 1000, Category.OTHER);
+            var input = new PersistTransactionInput("Compra", 1000, Category.OTHER, null);
             var emptyContext = new ToolContext(Map.of());
 
             assertThrows(NullPointerException.class, () -> tool.execute(input, emptyContext));
@@ -74,7 +88,7 @@ class PersistTransactionToolTest {
         @Test
         @DisplayName("should return TransactionOutput with correct fields")
         void shouldReturnTransactionOutput() {
-            var input = new PersistTransactionInput("Farmácia", 1500, Category.PHARMACY);
+            var input = new PersistTransactionInput("Farmácia", 1500, Category.PHARMACY, null);
             when(transactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             TransactionOutput output = tool.execute(input, toolContext);
@@ -83,6 +97,7 @@ class PersistTransactionToolTest {
             assertEquals("Farmácia", output.description());
             assertEquals("PHARMACY", output.category());
             assertEquals(15.0, output.valor(), 0.001);
+            assertNotNull(output.createdAt());
         }
     }
 }

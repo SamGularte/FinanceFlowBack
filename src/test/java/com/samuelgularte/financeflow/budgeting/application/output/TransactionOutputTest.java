@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -15,9 +16,10 @@ class TransactionOutputTest {
     private final UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
     private final UUID transactionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
     private final Category category = Category.SUPERMARKET;
+    private final LocalDateTime now = LocalDateTime.of(2026, 7, 27, 10, 0, 0);
 
     private Transaction transaction(long amount, String description) {
-        return new Transaction(transactionId, description, amount, category, userId);
+        return new Transaction(transactionId, description, amount, category, userId, now);
     }
 
     @Nested
@@ -87,9 +89,16 @@ class TransactionOutputTest {
         @Test
         @DisplayName("should preserve null description")
         void shouldPreserveNullDescription() {
-            var tx = new Transaction(transactionId, null, 1000, category, userId);
+            var tx = new Transaction(transactionId, null, 1000, category, userId, now);
             var output = TransactionOutput.from(tx);
             assertNull(output.description());
+        }
+
+        @Test
+        @DisplayName("should include createdAt in ISO format")
+        void shouldIncludeCreatedAt() {
+            var output = TransactionOutput.from(transaction(5000, "Compra"));
+            assertEquals("2026-07-27T10:00", output.createdAt());
         }
     }
 }

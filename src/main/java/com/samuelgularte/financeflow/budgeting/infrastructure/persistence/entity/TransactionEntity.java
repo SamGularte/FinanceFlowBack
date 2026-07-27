@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -31,13 +32,17 @@ public class TransactionEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
     public static TransactionEntity from(Transaction transaction, User user) {
         return new TransactionEntity(
                 transaction.id(),
                 transaction.description(),
                 transaction.amount(),
                 transaction.category(),
-                user
+                user,
+                transaction.createdAt()
         );
     }
 
@@ -47,7 +52,8 @@ public class TransactionEntity {
                 this.description,
                 this.amount,
                 this.category,
-                this.user.getId()
+                this.user.getId(),
+                this.createdAt
         );
     }
 }

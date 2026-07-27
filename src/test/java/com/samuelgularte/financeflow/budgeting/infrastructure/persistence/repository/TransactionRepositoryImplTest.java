@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -70,7 +71,8 @@ class TransactionRepositoryImplTest {
                     "Compra mercado atualizada",
                     6000,
                     Category.SUPERMARKET,
-                    testUser.getId()
+                    testUser.getId(),
+                    transaction.createdAt()
             );
             Transaction result = repository.save(updated);
 

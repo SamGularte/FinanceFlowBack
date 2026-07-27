@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,7 +28,7 @@ public class ProcessTextUseCase {
 
     public String execute(String userText, UUID userId) {
         return chatClient.prompt()
-                .system(systemPrompt)
+                .system(s -> s.text(systemPrompt + "\nData atual: " + LocalDateTime.now()))
                 .user(userText)
                 .tools(persistTransactionTool)
                 .toolContext(Map.of("userId", userId.toString()))
