@@ -3,6 +3,7 @@ package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.repos
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
+import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,8 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,8 +21,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @Import(TransactionRepositoryImpl.class)
 class TransactionRepositoryImplTest {
-
-    private static final PageRequest PAGE = PageRequest.of(0, 20);
 
     @Autowired
     private TransactionRepositoryImpl repository;
@@ -96,10 +93,10 @@ class TransactionRepositoryImplTest {
                     Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
             repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            Page<Transaction> result = repository.findAllByCategory(Category.PHARMACY, PAGE);
+            TransactionPage result = repository.findAllByCategory(Category.PHARMACY, 0, 20);
 
-            assertEquals(1, result.getTotalElements());
-            assertEquals(remedio.id(), result.getContent().get(0).id());
+            assertEquals(1, result.totalElements());
+            assertEquals(remedio.id(), result.content().get(0).id());
         }
 
         @Test
@@ -107,9 +104,9 @@ class TransactionRepositoryImplTest {
         void shouldReturnEmptyWhenNoMatch() {
             repository.save(Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            Page<Transaction> result = repository.findAllByCategory(Category.AUTO, PAGE);
+            TransactionPage result = repository.findAllByCategory(Category.AUTO, 0, 20);
 
-            assertTrue(result.isEmpty());
+            assertTrue(result.content().isEmpty());
         }
 
         @Test
@@ -119,9 +116,9 @@ class TransactionRepositoryImplTest {
             repository.save(Transaction.create("Farmácia 2", 2000, Category.PHARMACY, testUser.getId()));
             repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            Page<Transaction> result = repository.findAllByCategory(Category.PHARMACY, PAGE);
+            TransactionPage result = repository.findAllByCategory(Category.PHARMACY, 0, 20);
 
-            assertEquals(2, result.getTotalElements());
+            assertEquals(2, result.totalElements());
         }
     }
 
@@ -171,7 +168,7 @@ class TransactionRepositoryImplTest {
             Transaction tx = repository.save(
                     Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
 
-            repository.delete(tx);
+            repository.deleteById(tx.id());
 
             var found = repository.findByIdAndUserId(tx.id(), testUser.getId());
             assertTrue(found.isEmpty());
@@ -188,18 +185,18 @@ class TransactionRepositoryImplTest {
             Transaction tx = repository.save(
                     Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
 
-            Page<Transaction> result = repository.findAllByUserId(testUser.getId(), PAGE);
+            TransactionPage result = repository.findAllByUserId(testUser.getId(), 0, 20);
 
-            assertEquals(1, result.getTotalElements());
-            assertEquals(tx.id(), result.getContent().get(0).id());
+            assertEquals(1, result.totalElements());
+            assertEquals(tx.id(), result.content().get(0).id());
         }
 
         @Test
         @DisplayName("should return empty for user with no transactions")
         void shouldReturnEmptyForUserWithoutTransactions() {
-            Page<Transaction> result = repository.findAllByUserId(testUser.getId(), PAGE);
+            TransactionPage result = repository.findAllByUserId(testUser.getId(), 0, 20);
 
-            assertTrue(result.isEmpty());
+            assertTrue(result.content().isEmpty());
         }
     }
 
@@ -213,10 +210,10 @@ class TransactionRepositoryImplTest {
             repository.save(Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
             repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            Page<Transaction> result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.PHARMACY, PAGE);
+            TransactionPage result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.PHARMACY, 0, 20);
 
-            assertEquals(1, result.getTotalElements());
-            assertEquals(Category.PHARMACY, result.getContent().get(0).category());
+            assertEquals(1, result.totalElements());
+            assertEquals(Category.PHARMACY, result.content().get(0).category());
         }
 
         @Test
@@ -224,9 +221,9 @@ class TransactionRepositoryImplTest {
         void shouldReturnEmptyForNonMatchingCategory() {
             repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            Page<Transaction> result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.AUTO, PAGE);
+            TransactionPage result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.AUTO, 0, 20);
 
-            assertTrue(result.isEmpty());
+            assertTrue(result.content().isEmpty());
         }
 
         @Test
@@ -235,9 +232,9 @@ class TransactionRepositoryImplTest {
             repository.save(Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
             repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            Page<Transaction> result = repository.findAllByUserIdAndCategory(testUser.getId(), null, PAGE);
+            TransactionPage result = repository.findAllByUserIdAndCategory(testUser.getId(), null, 0, 20);
 
-            assertEquals(2, result.getTotalElements());
+            assertEquals(2, result.totalElements());
         }
     }
 }

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty("GEMINI_API_KEY")
+@ConditionalOnProperty(name = "GEMINI_API_KEY", matchIfMissing = false)
 class GoogleGenAiConfig {
 
     @Bean

@@ -1,18 +1,16 @@
 package com.samuelgularte.financeflow.budgeting.application.usecase;
 
 import com.samuelgularte.financeflow.budgeting.application.tool.PersistTransactionTool;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class ProcessTextUseCase {
 
     private final ChatClient chatClient;
@@ -20,13 +18,14 @@ public class ProcessTextUseCase {
     private final String systemPrompt;
 
     public ProcessTextUseCase(ChatClient chatClient, PersistTransactionTool persistTransactionTool,
-                              @Value("classpath:budgeting/prompts/system-prompt.st") Resource systemPromptResource) throws IOException {
+                              String systemPrompt) {
         this.chatClient = chatClient;
         this.persistTransactionTool = persistTransactionTool;
-        this.systemPrompt = systemPromptResource.getContentAsString(StandardCharsets.UTF_8);
+        this.systemPrompt = systemPrompt;
     }
 
     public String execute(String userText, UUID userId) {
+        log.info("Processing text for userId={}, text={}", userId, userText);
         return chatClient.prompt()
                 .system(s -> s.text(systemPrompt + "\nData atual: " + LocalDateTime.now()))
                 .user(userText)

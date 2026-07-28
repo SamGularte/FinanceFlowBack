@@ -1,15 +1,15 @@
 package com.samuelgularte.financeflow.budgeting.application.usecase;
 
-import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
+import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
 import com.samuelgularte.financeflow.budgeting.domain.repository.TransactionRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class FetchUserTransactionsUseCase {
 
     private final TransactionRepository transactionRepository;
@@ -18,12 +18,11 @@ public class FetchUserTransactionsUseCase {
         this.transactionRepository = transactionRepository;
     }
 
-    public Page<TransactionOutput> execute(UUID userId, Category category, Pageable pageable) {
+    public TransactionPage execute(UUID userId, Category category, int page, int size) {
+        log.info("Fetching transactions for userId={}, category={}, page={}, size={}", userId, category, page, size);
         if (category != null) {
-            return transactionRepository.findAllByUserIdAndCategory(userId, category, pageable)
-                    .map(TransactionOutput::from);
+            return transactionRepository.findAllByUserIdAndCategory(userId, category, page, size);
         }
-        return transactionRepository.findAllByUserId(userId, pageable)
-                .map(TransactionOutput::from);
+        return transactionRepository.findAllByUserId(userId, page, size);
     }
 }

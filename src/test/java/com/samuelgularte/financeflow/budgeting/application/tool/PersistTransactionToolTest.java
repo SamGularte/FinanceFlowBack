@@ -5,6 +5,7 @@ import com.samuelgularte.financeflow.budgeting.application.output.TransactionOut
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.repository.TransactionRepository;
+import com.samuelgularte.financeflow.budgeting.infrastructure.i18n.Messages;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.model.ToolContext;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -30,6 +32,9 @@ class PersistTransactionToolTest {
     @Mock
     private TransactionRepository transactionRepository;
 
+    @Mock
+    private Messages messages;
+
     private PersistTransactionTool tool;
 
     @Captor
@@ -40,7 +45,7 @@ class PersistTransactionToolTest {
 
     @BeforeEach
     void setUp() {
-        tool = new PersistTransactionTool(transactionRepository);
+        tool = new PersistTransactionTool(transactionRepository, messages);
     }
 
     @Nested
@@ -82,7 +87,7 @@ class PersistTransactionToolTest {
             var input = new PersistTransactionInput("Compra", 1000, Category.OTHER, null);
             var emptyContext = new ToolContext(Map.of());
 
-            assertThrows(NullPointerException.class, () -> tool.execute(input, emptyContext));
+            assertThrows(IllegalArgumentException.class, () -> tool.execute(input, emptyContext));
         }
 
         @Test
@@ -96,7 +101,7 @@ class PersistTransactionToolTest {
             assertNotNull(output.id());
             assertEquals("Farmácia", output.description());
             assertEquals("PHARMACY", output.category());
-            assertEquals(15.0, output.valor(), 0.001);
+            assertEquals(BigDecimal.valueOf(1500, 2), output.valor());
             assertNotNull(output.createdAt());
         }
     }

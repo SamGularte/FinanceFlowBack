@@ -3,6 +3,7 @@ package com.samuelgularte.financeflow.budgeting.application.usecase;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.repository.TransactionRepository;
+import com.samuelgularte.financeflow.budgeting.infrastructure.i18n.Messages;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,13 +26,16 @@ class DeleteTransactionUseCaseTest {
     @Mock
     private TransactionRepository repository;
 
+    @Mock
+    private Messages messages;
+
     private DeleteTransactionUseCase useCase;
     private final UUID userId = UUID.randomUUID();
     private final UUID transactionId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
-        useCase = new DeleteTransactionUseCase(repository);
+        useCase = new DeleteTransactionUseCase(repository, messages);
     }
 
     @Nested
@@ -46,7 +50,7 @@ class DeleteTransactionUseCaseTest {
 
             useCase.execute(transactionId, userId);
 
-            verify(repository).delete(transaction);
+            verify(repository).deleteById(transactionId);
         }
 
         @Test
@@ -55,7 +59,7 @@ class DeleteTransactionUseCaseTest {
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.empty());
 
             assertThrows(EntityNotFoundException.class, () -> useCase.execute(transactionId, userId));
-            verify(repository, never()).delete(any());
+            verify(repository, never()).deleteById(any());
         }
     }
 }

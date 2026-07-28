@@ -5,6 +5,7 @@ import com.samuelgularte.financeflow.budgeting.application.output.TransactionOut
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.repository.TransactionRepository;
+import com.samuelgularte.financeflow.budgeting.infrastructure.i18n.Messages;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +30,9 @@ class UpdateTransactionUseCaseTest {
     @Mock
     private TransactionRepository repository;
 
+    @Mock
+    private Messages messages;
+
     private UpdateTransactionUseCase useCase;
     private final UUID userId = UUID.randomUUID();
     private final UUID transactionId = UUID.randomUUID();
@@ -35,7 +40,7 @@ class UpdateTransactionUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new UpdateTransactionUseCase(repository);
+        useCase = new UpdateTransactionUseCase(repository, messages);
     }
 
     @Nested
@@ -56,7 +61,7 @@ class UpdateTransactionUseCaseTest {
 
             assertEquals("New", result.description());
             assertEquals("SUPERMARKET", result.category());
-            assertEquals(20.0, result.valor());
+            assertEquals(BigDecimal.valueOf(2000, 2), result.valor());
         }
 
         @Test
@@ -72,7 +77,7 @@ class UpdateTransactionUseCaseTest {
 
             assertEquals("Existing", result.description());
             assertEquals("SUPERMARKET", result.category());
-            assertEquals(50.0, result.valor());
+            assertEquals(BigDecimal.valueOf(5000, 2), result.valor());
         }
 
         @Test

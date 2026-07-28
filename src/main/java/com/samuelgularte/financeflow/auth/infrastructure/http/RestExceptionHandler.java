@@ -4,6 +4,7 @@ import com.samuelgularte.financeflow.auth.application.usecase.response.MessageRe
 import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegisteredException;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
+import jakarta.persistence.EntityNotFoundException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidResetTokenException;
 import com.samuelgularte.financeflow.auth.domain.exception.UsernameAlreadyExistsException;
@@ -56,6 +57,12 @@ public class RestExceptionHandler {
     public ResponseEntity<MessageResponse> handleEmailSend(EmailSendException ex) {
         MessageResponse message = new MessageResponse(ex.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Void> handleNotFound(EntityNotFoundException ex) {
+        log.warn("Entity not found: {}", ex.getMessage());
+        return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

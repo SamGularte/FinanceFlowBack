@@ -6,12 +6,15 @@ import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDeta
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import com.samuelgularte.financeflow.budgeting.application.input.UpdateTransactionInput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
+import com.samuelgularte.financeflow.budgeting.application.output.TransactionPageMapper;
 import com.samuelgularte.financeflow.budgeting.application.usecase.DeleteTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.FetchUserTransactionsUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessAudioUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessTextUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.UpdateTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
+import com.samuelgularte.financeflow.budgeting.domain.Transaction;
+import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,14 +29,19 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -66,6 +74,9 @@ class TransactionControllerTest {
 
     @MockitoBean
     private DeleteTransactionUseCase deleteTransactionUseCase;
+
+    @MockitoBean
+    private TransactionPageMapper pageMapper;
 
     @MockitoBean
     private JwtUtils jwtUtils;
@@ -119,9 +130,13 @@ class TransactionControllerTest {
         @Test
         @DisplayName("should return paginated transactions")
         void shouldReturnTransactions() throws Exception {
-            var output = new TransactionOutput(UUID.randomUUID().toString(), "Compra", "SUPERMARKET", 50.00, "2026-07-27T10:00:00");
-            var page = new PageImpl<>(java.util.List.of(output));
-            when(fetchUserTransactionsUseCase.execute(eq(userId), eq(null), any(Pageable.class))).thenReturn(page);
+            var tx = Transaction.create("Compra", 5000, Category.SUPERMARKET, userId, LocalDateTime.of(2026, 7, 27, 10, 0, 0));
+            var txPage = new TransactionPage(List.of(tx), 1, 0, 20);
+            when(fetchUserTransactionsUseCase.execute(eq(userId), eq(null), anyInt(), anyInt())).thenReturn(txPage);
+
+            var output = TransactionOutput.from(tx);
+            var springPage = new PageImpl<>(List.of(output), PageRequest.of(0, 20), 1);
+            when(pageMapper.toSpringPage(txPage)).thenReturn(springPage);
 
             mockMvc.perform(get("/transactions")
                             .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
@@ -134,9 +149,13 @@ class TransactionControllerTest {
         @Test
         @DisplayName("should filter by category when provided")
         void shouldFilterByCategory() throws Exception {
-            var output = new TransactionOutput(UUID.randomUUID().toString(), "Farmácia", "PHARMACY", 15.00, "2026-07-27T10:00:00");
-            var page = new PageImpl<>(java.util.List.of(output));
-            when(fetchUserTransactionsUseCase.execute(eq(userId), eq(Category.PHARMACY), any(Pageable.class))).thenReturn(page);
+            var tx = Transaction.create("Farmácia", 1500, Category.PHARMACY, userId, LocalDateTime.of(2026, 7, 27, 10, 0, 0));
+            var txPage = new TransactionPage(List.of(tx), 1, 0, 20);
+            when(fetchUserTransactionsUseCase.execute(eq(userId), eq(Category.PHARMACY), anyInt(), anyInt())).thenReturn(txPage);
+
+            var output = TransactionOutput.from(tx);
+            var springPage = new PageImpl<>(List.of(output), PageRequest.of(0, 20), 1);
+            when(pageMapper.toSpringPage(txPage)).thenReturn(springPage);
 
             mockMvc.perform(get("/transactions")
                             .param("category", "PHARMACY")
@@ -153,7 +172,7 @@ class TransactionControllerTest {
         @Test
         @DisplayName("should return 200 with updated transaction")
         void shouldUpdateTransaction() throws Exception {
-            var output = new TransactionOutput(UUID.randomUUID().toString(), "Updated", "SUPERMARKET", 30.00, "2026-07-27T10:00:00");
+            var output = new TransactionOutput(UUID.randomUUID().toString(), "Updated", "SUPERMARKET", BigDecimal.valueOf(3000, 2), "2026-07-27T10:00:00");
             when(updateTransactionUseCase.execute(any(), eq(userId), any())).thenReturn(output);
 
             mockMvc.perform(put("/transactions/" + UUID.randomUUID())

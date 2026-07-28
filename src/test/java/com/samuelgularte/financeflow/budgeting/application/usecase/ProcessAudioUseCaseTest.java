@@ -9,8 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -44,8 +42,7 @@ class ProcessAudioUseCaseTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        Resource systemPrompt = new ByteArrayResource("Você é um assistente financeiro.".getBytes());
-        useCase = new ProcessAudioUseCase(chatClient, persistTransactionTool, systemPrompt);
+        useCase = new ProcessAudioUseCase(chatClient, persistTransactionTool, "Você é um assistente financeiro.");
         when(audioFile.getInputStream()).thenReturn(new ByteArrayInputStream("fake-audio".getBytes()));
     }
 

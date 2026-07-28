@@ -1,20 +1,19 @@
 package com.samuelgularte.financeflow.budgeting.application.usecase;
 
 import com.samuelgularte.financeflow.budgeting.application.tool.PersistTransactionTool;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class ProcessAudioUseCase {
 
     private final ChatClient chatClient;
@@ -22,13 +21,14 @@ public class ProcessAudioUseCase {
     private final String systemPrompt;
 
     public ProcessAudioUseCase(ChatClient chatClient, PersistTransactionTool persistTransactionTool,
-                               @Value("classpath:budgeting/prompts/system-prompt.st") Resource systemPromptResource) throws IOException {
+                               String systemPrompt) {
         this.chatClient = chatClient;
         this.persistTransactionTool = persistTransactionTool;
-        this.systemPrompt = systemPromptResource.getContentAsString(StandardCharsets.UTF_8);
+        this.systemPrompt = systemPrompt;
     }
 
     public String execute(MultipartFile audioFile, UUID userId) throws IOException {
+        log.info("Processing audio for userId={}, fileName={}", userId, audioFile.getOriginalFilename());
         var audioResource = new InputStreamResource(audioFile.getInputStream());
         return chatClient.prompt()
                 .system(s -> s.text(systemPrompt + "\nData atual: " + LocalDateTime.now()))

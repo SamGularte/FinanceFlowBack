@@ -9,8 +9,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 
 import java.util.Map;
 import java.util.UUID;
@@ -39,9 +37,8 @@ class ProcessTextUseCaseTest {
     private final UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000001");
 
     @BeforeEach
-    void setUp() throws Exception {
-        Resource systemPrompt = new ByteArrayResource("Você é um assistente financeiro.".getBytes());
-        useCase = new ProcessTextUseCase(chatClient, persistTransactionTool, systemPrompt);
+    void setUp() {
+        useCase = new ProcessTextUseCase(chatClient, persistTransactionTool, "Você é um assistente financeiro.");
     }
 
     @Nested

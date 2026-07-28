@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -22,59 +23,63 @@ class TransactionOutputTest {
         return new Transaction(transactionId, description, amount, category, userId, now);
     }
 
+    private static BigDecimal cents(long cents) {
+        return BigDecimal.valueOf(cents, 2);
+    }
+
     @Nested
     @DisplayName("from")
     class From {
 
         @Test
-        @DisplayName("should convert 5000 cents to 50.0")
+        @DisplayName("should convert 5000 cents to 50.00")
         void shouldConvertCentsToReais() {
             var output = TransactionOutput.from(transaction(5000, "Compra mercado"));
-            assertEquals(50.0, output.valor(), 0.001);
+            assertEquals(cents(5000), output.valor());
         }
 
         @Test
-        @DisplayName("should convert 0 cents to 0.0")
+        @DisplayName("should convert 0 cents to 0.00")
         void shouldConvertZeroCents() {
             var output = TransactionOutput.from(transaction(0, "Isento"));
-            assertEquals(0.0, output.valor(), 0.001);
+            assertEquals(cents(0), output.valor());
         }
 
         @Test
         @DisplayName("should convert negative cents to negative reais")
         void shouldConvertNegativeCents() {
             var output = TransactionOutput.from(transaction(-5000, "Estorno"));
-            assertEquals(-50.0, output.valor(), 0.001);
+            assertEquals(cents(-5000), output.valor());
         }
 
         @Test
         @DisplayName("should convert 1 cent to 0.01")
         void shouldConvertOneCent() {
             var output = TransactionOutput.from(transaction(1, "Taxa"));
-            assertEquals(0.01, output.valor(), 0.001);
+            assertEquals(cents(1), output.valor());
         }
 
         @Test
         @DisplayName("should convert 99 cents to 0.99")
         void shouldConvertNinetyNineCents() {
             var output = TransactionOutput.from(transaction(99, "Taxa"));
-            assertEquals(0.99, output.valor(), 0.001);
+            assertEquals(cents(99), output.valor());
         }
 
         @Test
         @DisplayName("should convert Long.MAX_VALUE cents without overflow")
         void shouldConvertMaxLong() {
             var output = TransactionOutput.from(transaction(Long.MAX_VALUE, "Grande"));
-            assertEquals(9.223372036854776E16, output.valor(), 0.001);
-            assertTrue(output.valor() > 0);
+            assertEquals(cents(Long.MAX_VALUE), output.valor());
+            assertTrue(output.valor().signum() > 0);
         }
 
         @Test
         @DisplayName("should convert Long.MIN_VALUE cents without overflow")
         void shouldConvertMinLong() {
             var output = TransactionOutput.from(transaction(Long.MIN_VALUE, "Mínimo"));
-            assertEquals(-9.223372036854776E16, output.valor(), 0.001);
-            assertTrue(output.valor() < 0);
+            assertEquals(cents(Long.MIN_VALUE), output.valor());
+            assertTrue(output.valor().signum() < 0);
         }
 
         @Test
