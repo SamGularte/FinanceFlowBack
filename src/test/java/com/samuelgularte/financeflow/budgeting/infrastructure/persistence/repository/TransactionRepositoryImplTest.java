@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.repository;
 
-import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.UserEntity;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
@@ -28,11 +28,11 @@ class TransactionRepositoryImplTest {
     @Autowired
     private EntityManager entityManager;
 
-    private User testUser;
+    private UserEntity testUser;
 
     @BeforeEach
     void setUp() {
-        testUser = new User("testuser", "test@email.com", "password");
+        testUser = new UserEntity(UUID.randomUUID(), "testuser", "test@email.com", "password", null, null);
         entityManager.persist(testUser);
         entityManager.flush();
     }

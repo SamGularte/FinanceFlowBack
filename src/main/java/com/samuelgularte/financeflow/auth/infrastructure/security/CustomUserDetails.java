@@ -17,7 +17,7 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public UUID getUserId() {
-        return user.getId();
+        return user.id();
     }
 
     @Override
@@ -27,12 +27,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getPassword();
+        return user.password();
     }
 
     @Override
     public String getUsername() {
-        return user.getUserName();
+        return user.userName();
     }
 
     @Override public boolean isAccountNonExpired() { return true; }

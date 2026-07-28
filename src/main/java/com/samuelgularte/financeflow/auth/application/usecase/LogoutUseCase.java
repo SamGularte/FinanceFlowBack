@@ -17,7 +17,7 @@ public class LogoutUseCase {
     }
 
     public String execute(LogoutRequest request) {
-        refreshTokenRepository.findByToken(TokenHasher.hash(request.getRefreshToken()))
+        refreshTokenRepository.findByToken(TokenHasher.hash(request.refreshToken()))
                 .ifPresent(refreshTokenRepository::delete);
         return "Logged out";
     }

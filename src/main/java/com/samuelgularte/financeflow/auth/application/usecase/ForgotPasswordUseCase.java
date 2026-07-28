@@ -25,22 +25,22 @@ public class ForgotPasswordUseCase {
     private final SecureRandom secureRandom = new SecureRandom();
 
     public ForgotPasswordUseCase(UserRepository userRepository,
-                                 PasswordResetTokenRepository passwordResetTokenRepository,
-                                 EmailSender emailSender) {
+                                  PasswordResetTokenRepository passwordResetTokenRepository,
+                                  EmailSender emailSender) {
         this.userRepository = userRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.emailSender = emailSender;
     }
 
-    public String execute (String email) {
+    public String execute(String email) {
         var userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            passwordResetTokenRepository.deleteByUser(user);
+            passwordResetTokenRepository.deleteByUserId(user.id());
             String rawToken = generateToken();
             String hashedToken = TokenHasher.hash(rawToken);
             Instant expiryDate = Instant.now().plus(24, ChronoUnit.HOURS);
-            PasswordResetToken resetToken = new PasswordResetToken(hashedToken, expiryDate, user);
+            PasswordResetToken resetToken = PasswordResetToken.create(hashedToken, expiryDate, user.id());
             passwordResetTokenRepository.save(resetToken);
             try {
                 emailSender.sendPasswordResetEmail(email, rawToken);

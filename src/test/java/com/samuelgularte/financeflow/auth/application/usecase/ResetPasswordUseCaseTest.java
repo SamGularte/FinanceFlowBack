@@ -49,16 +49,14 @@ class ResetPasswordUseCaseTest {
     private static final String ENCODED_PASSWORD = "$2a$10$encoded";
     private static final String USERNAME = "joao";
 
-    private User createUser() {
-        return new User(USERNAME, "joao@email.com", "old-encoded");
-    }
+    private final User testUser = User.create(USERNAME, "joao@email.com", "old-encoded");
 
     private PasswordResetToken createValidToken() {
-        return new PasswordResetToken(TOKEN, Instant.now().plus(1, ChronoUnit.DAYS), createUser());
+        return PasswordResetToken.create(TOKEN, Instant.now().plus(1, ChronoUnit.DAYS), testUser.id());
     }
 
     private PasswordResetToken createExpiredToken() {
-        return new PasswordResetToken(TOKEN, Instant.now().minus(1, ChronoUnit.DAYS), createUser());
+        return PasswordResetToken.create(TOKEN, Instant.now().minus(1, ChronoUnit.DAYS), testUser.id());
     }
 
     @Nested
@@ -70,6 +68,7 @@ class ResetPasswordUseCaseTest {
         void shouldUpdatePasswordAndDeleteToken() {
             PasswordResetToken resetToken = createValidToken();
             when(passwordResetTokenRepository.findByToken(HASHED_TOKEN)).thenReturn(Optional.of(resetToken));
+            when(userRepository.findById(testUser.id())).thenReturn(Optional.of(testUser));
             when(passwordEncoder.encode(NEW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
             String result = resetPasswordUseCase.execute(TOKEN, NEW_PASSWORD);
@@ -77,7 +76,7 @@ class ResetPasswordUseCaseTest {
             assertEquals("Password updated", result);
             verify(passwordEncoder).encode(NEW_PASSWORD);
             verify(userRepository).save(userCaptor.capture());
-            assertEquals(ENCODED_PASSWORD, userCaptor.getValue().getPassword());
+            assertEquals(ENCODED_PASSWORD, userCaptor.getValue().password());
             verify(passwordResetTokenRepository).delete(same(resetToken));
         }
 
@@ -86,6 +85,7 @@ class ResetPasswordUseCaseTest {
         void shouldDeleteTokenAfterUpdate() {
             PasswordResetToken resetToken = createValidToken();
             when(passwordResetTokenRepository.findByToken(HASHED_TOKEN)).thenReturn(Optional.of(resetToken));
+            when(userRepository.findById(testUser.id())).thenReturn(Optional.of(testUser));
             when(passwordEncoder.encode(NEW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
             resetPasswordUseCase.execute(TOKEN, NEW_PASSWORD);

@@ -52,7 +52,7 @@ class ForgotPasswordUseCaseTest {
     private static final Pattern HEX_64 = Pattern.compile("[0-9a-f]{64}");
 
     private User createUser() {
-        return new User(USERNAME, EMAIL, "encoded");
+        return User.create(USERNAME, EMAIL, "encoded");
     }
 
     @Nested
@@ -70,7 +70,7 @@ class ForgotPasswordUseCaseTest {
             assertEquals("Password reset token sent", result);
             verify(passwordResetTokenRepository).save(resetTokenCaptor.capture());
             PasswordResetToken savedToken = resetTokenCaptor.getValue();
-            assertEquals(user, savedToken.getUser());
+            assertEquals(user.id(), savedToken.userId());
             verify(emailSender).sendPasswordResetEmail(eq(EMAIL), anyString());
         }
 
@@ -84,10 +84,10 @@ class ForgotPasswordUseCaseTest {
 
             verify(passwordResetTokenRepository).save(resetTokenCaptor.capture());
             PasswordResetToken savedToken = resetTokenCaptor.getValue();
-            assertTrue(HEX_64.matcher(savedToken.getToken()).matches(),
+            assertTrue(HEX_64.matcher(savedToken.token()).matches(),
                     "Token should be 64 hex characters (SHA-256 hash)");
             Instant expectedExpiry = Instant.now().plus(24, ChronoUnit.HOURS);
-            long diffSeconds = ChronoUnit.SECONDS.between(savedToken.getExpiryDate(), expectedExpiry);
+            long diffSeconds = ChronoUnit.SECONDS.between(savedToken.expiryDate(), expectedExpiry);
             assertTrue(Math.abs(diffSeconds) < 5,
                     "Expiry should be approximately 24 hours from now");
         }
@@ -101,7 +101,7 @@ class ForgotPasswordUseCaseTest {
             forgotPasswordUseCase.execute(EMAIL);
 
             InOrder inOrder = inOrder(passwordResetTokenRepository);
-            inOrder.verify(passwordResetTokenRepository).deleteByUser(same(user));
+            inOrder.verify(passwordResetTokenRepository).deleteByUserId(same(user.id()));
             inOrder.verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
         }
     }

@@ -1,9 +1,9 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.output.TokenResponse;
 import com.samuelgularte.financeflow.auth.application.port.AuthenticationPort;
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -38,16 +38,16 @@ public class LoginUseCase {
 
     public TokenResponse execute(LoginRequest loginRequest) {
         String username = authenticationPort.authenticate(
-                loginRequest.getLogin(), loginRequest.getPassword());
+                loginRequest.login(), loginRequest.password());
         User user = userRepository.findByUserName(username)
                 .orElseThrow(InvalidCredentialsException::new);
-        refreshTokenRepository.deleteByUser(user);
+        refreshTokenRepository.deleteByUserId(user.id());
         String rawToken = UUID.randomUUID().toString();
         String hashedToken = TokenHasher.hash(rawToken);
         Instant expiryDate = Instant.now().plus(7, ChronoUnit.DAYS);
-        RefreshToken refreshToken = new RefreshToken(hashedToken, expiryDate, user);
+        RefreshToken refreshToken = RefreshToken.create(hashedToken, expiryDate, user.id());
         refreshTokenRepository.save(refreshToken);
         String token = tokenProvider.generateTokenFromUsername(username);
-        return new TokenResponse(token, rawToken);
+        return TokenResponse.of(token, rawToken);
     }
 }

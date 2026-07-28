@@ -1,11 +1,7 @@
 package com.samuelgularte.financeflow.auth.application.usecase.request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 
-@Data
-public class LogoutRequest {
-
-    @NotBlank
-    private String refreshToken;
-}
+public record LogoutRequest(
+        @NotBlank String refreshToken
+) {}

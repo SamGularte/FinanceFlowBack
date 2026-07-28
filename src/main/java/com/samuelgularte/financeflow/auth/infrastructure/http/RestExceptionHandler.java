@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.auth.infrastructure.http;
 
-import com.samuelgularte.financeflow.auth.application.usecase.response.MessageResponse;
+import com.samuelgularte.financeflow.auth.application.output.MessageResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailAlreadyRegisteredException;
 import com.samuelgularte.financeflow.auth.domain.exception.EmailSendException;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;

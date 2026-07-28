@@ -11,6 +11,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Service
 @Transactional
@@ -28,18 +29,20 @@ public class ResetPasswordUseCase {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public String execute (String token, String newPassword) {
+    public String execute(String token, String newPassword) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(TokenHasher.hash(token))
                 .orElseThrow(InvalidResetTokenException::new);
 
-        if(resetToken.getExpiryDate().isBefore(Instant.now())){
+        if (resetToken.expiryDate().isBefore(Instant.now())) {
             passwordResetTokenRepository.delete(resetToken);
             throw new InvalidResetTokenException();
         }
 
-        User user = resetToken.getUser();
-        user.setPassword(passwordEncoder.encode(newPassword));
-        userRepository.save(user);
+        User user = userRepository.findById(resetToken.userId())
+                .orElseThrow(InvalidResetTokenException::new);
+        User updated = new User(user.id(), user.userName(), user.email(),
+                passwordEncoder.encode(newPassword), user.createdDate(), LocalDateTime.now());
+        userRepository.save(updated);
 
         passwordResetTokenRepository.delete(resetToken);
 

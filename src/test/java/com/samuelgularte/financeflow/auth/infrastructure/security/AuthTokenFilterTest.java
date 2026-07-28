@@ -37,6 +37,9 @@ class AuthTokenFilterTest {
     private CustomUserDetailsService userDetailsService;
 
     @Mock
+    private CookieUtils cookieUtils;
+
+    @Mock
     private HttpServletRequest request;
 
     @Mock

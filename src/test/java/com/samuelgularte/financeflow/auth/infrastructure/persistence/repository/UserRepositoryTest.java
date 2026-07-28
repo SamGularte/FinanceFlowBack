@@ -1,15 +1,16 @@
 package com.samuelgularte.financeflow.auth.infrastructure.persistence.repository;
 
-import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.UserEntity;
+import jakarta.persistence.PersistenceException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import jakarta.persistence.PersistenceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,8 +23,8 @@ class UserRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private User createAndPersistUser(String userName, String email) {
-        User user = new User(userName, email, "encoded-pass");
+    private UserEntity createAndPersistUser(String userName, String email) {
+        UserEntity user = new UserEntity(UUID.randomUUID(), userName, email, "encoded-pass", null, null);
         return entityManager.persistFlushFind(user);
     }
 
@@ -36,7 +37,7 @@ class UserRepositoryTest {
         void shouldReturnUserWhenExists() {
             createAndPersistUser("joao", "joao@email.com");
 
-            Optional<User> found = userRepository.findByUserName("joao");
+            Optional<UserEntity> found = userRepository.findByUserName("joao");
 
             assertTrue(found.isPresent());
             assertEquals("joao", found.get().getUserName());
@@ -46,7 +47,7 @@ class UserRepositoryTest {
         @Test
         @DisplayName("should return empty when username does not exist")
         void shouldReturnEmptyWhenNotExists() {
-            Optional<User> found = userRepository.findByUserName("naoexiste");
+            Optional<UserEntity> found = userRepository.findByUserName("naoexiste");
 
             assertTrue(found.isEmpty());
         }
@@ -61,7 +62,7 @@ class UserRepositoryTest {
         void shouldReturnUserWhenExists() {
             createAndPersistUser("joao", "joao@email.com");
 
-            Optional<User> found = userRepository.findByEmail("joao@email.com");
+            Optional<UserEntity> found = userRepository.findByEmail("joao@email.com");
 
             assertTrue(found.isPresent());
             assertEquals("joao", found.get().getUserName());
@@ -71,7 +72,7 @@ class UserRepositoryTest {
         @Test
         @DisplayName("should return empty when email does not exist")
         void shouldReturnEmptyWhenNotExists() {
-            Optional<User> found = userRepository.findByEmail("naoexiste@email.com");
+            Optional<UserEntity> found = userRepository.findByEmail("naoexiste@email.com");
 
             assertTrue(found.isEmpty());
         }
@@ -124,7 +125,7 @@ class UserRepositoryTest {
         void shouldThrowWhenUsernameDuplicated() {
             createAndPersistUser("joao", "joao@email.com");
 
-            User duplicate = new User("joao", "outro@email.com", "pass");
+            UserEntity duplicate = new UserEntity(UUID.randomUUID(), "joao", "outro@email.com", "pass", null, null);
 
             assertThrows(PersistenceException.class,
                     () -> entityManager.persistFlushFind(duplicate));
@@ -135,7 +136,7 @@ class UserRepositoryTest {
         void shouldThrowWhenEmailDuplicated() {
             createAndPersistUser("joao", "joao@email.com");
 
-            User duplicate = new User("outro", "joao@email.com", "pass");
+            UserEntity duplicate = new UserEntity(UUID.randomUUID(), "outro", "joao@email.com", "pass", null, null);
 
             assertThrows(PersistenceException.class,
                     () -> entityManager.persistFlushFind(duplicate));

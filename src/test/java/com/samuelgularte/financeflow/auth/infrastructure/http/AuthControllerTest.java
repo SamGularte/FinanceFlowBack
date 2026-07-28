@@ -1,12 +1,14 @@
 package com.samuelgularte.financeflow.auth.infrastructure.http;
 
+import com.samuelgularte.financeflow.auth.application.output.TokenResponse;
 import com.samuelgularte.financeflow.auth.application.usecase.*;
 import com.samuelgularte.financeflow.auth.application.usecase.request.*;
-import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.*;
+import com.samuelgularte.financeflow.auth.infrastructure.security.CookieUtils;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import com.samuelgularte.financeflow.auth.infrastructure.security.RateLimitFilter;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,11 +18,16 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Collection;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -56,6 +63,9 @@ class AuthControllerTest {
 
     @MockitoBean
     private CustomUserDetailsService customUserDetailsService;
+
+    @MockitoBean
+    private CookieUtils cookieUtils;
 
     @Autowired
     private RateLimitFilter rateLimitFilter;
@@ -137,18 +147,26 @@ class AuthControllerTest {
     class SignIn {
 
         @Test
-        @DisplayName("should return 200 with tokens when credentials are valid")
+        @DisplayName("should return 200 with Set-Cookie headers when credentials are valid")
         void shouldReturn200() throws Exception {
             when(loginUseCase.execute(any(LoginRequest.class)))
-                    .thenReturn(new TokenResponse("jwt-token", "refresh-token-uuid"));
+                    .thenReturn(TokenResponse.of("jwt-token", "refresh-token-uuid"));
+            when(cookieUtils.createAccessTokenCookie("jwt-token"))
+                    .thenReturn(ResponseCookie.from("access_token", "jwt-token").httpOnly(true).path("/").build());
+            when(cookieUtils.createRefreshTokenCookie("refresh-token-uuid"))
+                    .thenReturn(ResponseCookie.from("refresh_token", "refresh-token-uuid").httpOnly(true).path("/").build());
 
             mockMvc.perform(post("/auth/public/signin")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"login\":\"joao\",\"password\":\"pass123\"}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.token").value("jwt-token"))
-                    .andExpect(jsonPath("$.refreshToken").value("refresh-token-uuid"))
-                    .andExpect(jsonPath("$.type").value("Bearer"));
+                    .andExpect(jsonPath("$.message").value("Authenticated"))
+                    .andExpect(header().exists("Set-Cookie"))
+                    .andExpect(result -> {
+                        Collection<String> headers = result.getResponse().getHeaders("Set-Cookie");
+                        assertTrue(headers.stream().anyMatch(h -> h.startsWith("access_token=jwt-token")), "Missing access_token cookie");
+                        assertTrue(headers.stream().anyMatch(h -> h.startsWith("refresh_token=refresh-token-uuid")), "Missing refresh_token cookie");
+                    });
         }
 
         @Test
@@ -231,29 +249,49 @@ class AuthControllerTest {
     class RefreshToken {
 
         @Test
-        @DisplayName("should return 200 when token is valid")
+        @DisplayName("should return 200 with new cookies when token is valid")
         void shouldReturn200() throws Exception {
+            when(cookieUtils.getRefreshTokenFromCookie(any()))
+                    .thenReturn("valid-refresh-token");
             when(refreshTokenUseCase.execute(any(RefreshTokenRequest.class)))
-                    .thenReturn(new TokenResponse("new-jwt", "new-refresh-uuid"));
+                    .thenReturn(TokenResponse.of("new-jwt", "new-refresh-uuid"));
+            when(cookieUtils.createAccessTokenCookie("new-jwt"))
+                    .thenReturn(ResponseCookie.from("access_token", "new-jwt").httpOnly(true).path("/").build());
+            when(cookieUtils.createRefreshTokenCookie("new-refresh-uuid"))
+                    .thenReturn(ResponseCookie.from("refresh_token", "new-refresh-uuid").httpOnly(true).path("/").build());
 
             mockMvc.perform(post("/auth/public/refresh-token")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"token\":\"valid-refresh-token\"}"))
+                            .cookie(new Cookie("refresh_token", "valid-refresh-token")))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.token").value("new-jwt"))
-                    .andExpect(jsonPath("$.refreshToken").value("new-refresh-uuid"))
-                    .andExpect(jsonPath("$.type").value("Bearer"));
+                    .andExpect(jsonPath("$.message").value("Token refreshed"))
+                    .andExpect(result -> {
+                        Collection<String> headers = result.getResponse().getHeaders("Set-Cookie");
+                        assertTrue(headers.stream().anyMatch(h -> h.startsWith("access_token=new-jwt")), "Missing access_token cookie");
+                        assertTrue(headers.stream().anyMatch(h -> h.startsWith("refresh_token=new-refresh-uuid")), "Missing refresh_token cookie");
+                    });
+        }
+
+        @Test
+        @DisplayName("should return 400 when refresh token cookie is missing")
+        void shouldReturn400WhenTokenMissing() throws Exception {
+            when(cookieUtils.getRefreshTokenFromCookie(any()))
+                    .thenReturn(null);
+
+            mockMvc.perform(post("/auth/public/refresh-token"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").value("Refresh token is missing"));
         }
 
         @Test
         @DisplayName("should return 401 when token is invalid or expired")
         void shouldReturn401WhenInvalidToken() throws Exception {
+            when(cookieUtils.getRefreshTokenFromCookie(any()))
+                    .thenReturn("invalid-refresh-token");
             when(refreshTokenUseCase.execute(any(RefreshTokenRequest.class)))
                     .thenThrow(new InvalidRefreshTokenException());
 
             mockMvc.perform(post("/auth/public/refresh-token")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"token\":\"invalid-refresh-token\"}"))
+                            .cookie(new Cookie("refresh_token", "invalid-refresh-token")))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.message").value("Invalid refresh token"));
         }
@@ -264,15 +302,25 @@ class AuthControllerTest {
     class Logout {
 
         @Test
-        @DisplayName("should return 200 when token exists or not")
+        @DisplayName("should return 200 and clear cookies")
         void shouldReturn200() throws Exception {
+            when(cookieUtils.getRefreshTokenFromCookie(any()))
+                    .thenReturn("some-token");
             when(logoutUseCase.execute(any(LogoutRequest.class))).thenReturn("Logged out");
+            when(cookieUtils.clearAccessTokenCookie())
+                    .thenReturn(ResponseCookie.from("access_token", "").httpOnly(true).path("/").maxAge(0).build());
+            when(cookieUtils.clearRefreshTokenCookie())
+                    .thenReturn(ResponseCookie.from("refresh_token", "").httpOnly(true).path("/").maxAge(0).build());
 
             mockMvc.perform(post("/auth/public/logout")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"refreshToken\":\"some-token\"}"))
+                            .cookie(new Cookie("refresh_token", "some-token")))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("Logged out"));
+                    .andExpect(jsonPath("$.message").value("Logged out"))
+                    .andExpect(result -> {
+                        Collection<String> headers = result.getResponse().getHeaders("Set-Cookie");
+                        assertTrue(headers.stream().anyMatch(h -> h.startsWith("access_token=")), "Missing access_token cookie");
+                        assertTrue(headers.stream().anyMatch(h -> h.startsWith("refresh_token=")), "Missing refresh_token cookie");
+                    });
         }
     }
 }

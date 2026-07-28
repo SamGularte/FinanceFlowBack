@@ -1,9 +1,9 @@
 package com.samuelgularte.financeflow.auth.domain.repository;
 
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
-import com.samuelgularte.financeflow.auth.domain.model.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface RefreshTokenRepository {
 
@@ -13,5 +13,5 @@ public interface RefreshTokenRepository {
 
     void delete(RefreshToken refreshToken);
 
-    void deleteByUser(User user);
+    void deleteByUserId(UUID userId);
 }

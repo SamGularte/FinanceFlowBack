@@ -25,10 +25,12 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final CustomUserDetailsService userDetailsService;
+    private final CookieUtils cookieUtils;
 
-    public AuthTokenFilter(JwtUtils jwtUtils, CustomUserDetailsService userDetailsService) {
+    public AuthTokenFilter(JwtUtils jwtUtils, CustomUserDetailsService userDetailsService, CookieUtils cookieUtils) {
         this.jwtUtils = jwtUtils;
         this.userDetailsService = userDetailsService;
+        this.cookieUtils = cookieUtils;
     }
 
     @Override
@@ -71,6 +73,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
+        String jwt = cookieUtils.getAccessTokenFromCookie(request);
+        if (jwt != null) return jwt;
         return jwtUtils.getJwtFromHeader(request);
     }
 }

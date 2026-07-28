@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.repository;
 
-import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.UserEntity;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
@@ -28,7 +28,7 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     @Override
     public Transaction save(Transaction transaction) {
         log.info("Saving transaction: id={}, description={}, amount={}", transaction.id(), transaction.description(), transaction.amount());
-        User user = entityManager.getReference(User.class, transaction.userId());
+        UserEntity user = entityManager.getReference(UserEntity.class, transaction.userId());
         return jpaRepository.save(TransactionEntity.from(transaction, user)).toDomain();
     }
 

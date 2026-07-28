@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.entity;
 
-import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.UserEntity;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import jakarta.persistence.*;
@@ -30,12 +30,12 @@ public class TransactionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    public static TransactionEntity from(Transaction transaction, User user) {
+    public static TransactionEntity from(Transaction transaction, UserEntity user) {
         return new TransactionEntity(
                 transaction.id(),
                 transaction.description(),

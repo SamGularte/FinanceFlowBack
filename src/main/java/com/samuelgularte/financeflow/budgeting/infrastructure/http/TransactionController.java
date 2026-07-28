@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.http;
 
-import com.samuelgularte.financeflow.auth.application.usecase.response.MessageResponse;
+import com.samuelgularte.financeflow.auth.application.output.MessageResponse;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
 import com.samuelgularte.financeflow.budgeting.application.input.TextRequest;
 import com.samuelgularte.financeflow.budgeting.application.input.UpdateTransactionInput;

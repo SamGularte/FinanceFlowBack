@@ -30,7 +30,7 @@ class CustomUserDetailsServiceTest {
     private static final String EMAIL = "joao@email.com";
 
     private User createUser() {
-        return new User(USERNAME, EMAIL, "encoded");
+        return User.create(USERNAME, EMAIL, "encoded");
     }
 
     @Nested

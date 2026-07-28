@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,9 +34,7 @@ class LogoutUseCaseTest {
     private static final String TOKEN_VALUE = "refresh-token-uuid";
 
     private LogoutRequest buildRequest() {
-        LogoutRequest request = new LogoutRequest();
-        request.setRefreshToken(TOKEN_VALUE);
-        return request;
+        return new LogoutRequest(TOKEN_VALUE);
     }
 
     @Nested
@@ -45,7 +44,7 @@ class LogoutUseCaseTest {
         @Test
         @DisplayName("should delete token and return message when token exists")
         void shouldDeleteTokenWhenExists() {
-            RefreshToken foundToken = new RefreshToken(TokenHasher.hash(TOKEN_VALUE), Instant.now().plus(7, ChronoUnit.DAYS), null);
+            RefreshToken foundToken = RefreshToken.create(TokenHasher.hash(TOKEN_VALUE), Instant.now().plus(7, ChronoUnit.DAYS), UUID.randomUUID());
             when(refreshTokenRepository.findByToken(TokenHasher.hash(TOKEN_VALUE))).thenReturn(Optional.of(foundToken));
 
             String result = logoutUseCase.execute(buildRequest());

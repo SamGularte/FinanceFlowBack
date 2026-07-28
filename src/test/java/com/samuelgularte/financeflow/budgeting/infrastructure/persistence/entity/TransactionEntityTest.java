@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.entity;
 
-import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.UserEntity;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +25,7 @@ class TransactionEntityTest {
         @DisplayName("should map all fields from domain to entity")
         void shouldMapAllFields() {
             Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId, now);
-            User user = new User();
+            UserEntity user = new UserEntity();
             user.setId(userId);
 
             TransactionEntity entity = TransactionEntity.from(transaction, user);
@@ -46,7 +46,7 @@ class TransactionEntityTest {
         @Test
         @DisplayName("should map all fields from entity to domain")
         void shouldMapAllFields() {
-            User user = new User();
+            UserEntity user = new UserEntity();
             user.setId(userId);
             UUID id = UUID.randomUUID();
             TransactionEntity entity = new TransactionEntity(id, "Farmácia", 1500, Category.PHARMACY, user, now);
@@ -70,7 +70,7 @@ class TransactionEntityTest {
         @DisplayName("should preserve all fields after from then toDomain")
         void shouldPreserveFields() {
             Transaction original = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId, now);
-            User user = new User();
+            UserEntity user = new UserEntity();
             user.setId(userId);
 
             TransactionEntity entity = TransactionEntity.from(original, user);

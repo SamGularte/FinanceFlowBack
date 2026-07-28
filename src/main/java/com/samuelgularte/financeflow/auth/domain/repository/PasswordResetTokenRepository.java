@@ -1,9 +1,9 @@
 package com.samuelgularte.financeflow.auth.domain.repository;
 
 import com.samuelgularte.financeflow.auth.domain.model.PasswordResetToken;
-import com.samuelgularte.financeflow.auth.domain.model.User;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface PasswordResetTokenRepository {
 
@@ -13,5 +13,5 @@ public interface PasswordResetTokenRepository {
 
     void delete(PasswordResetToken resetToken);
 
-    void deleteByUser(User user);
+    void deleteByUserId(UUID userId);
 }

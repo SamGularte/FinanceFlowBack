@@ -1,12 +1,13 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.output.TokenResponse;
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.RefreshTokenRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidRefreshTokenException;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
 import com.samuelgularte.financeflow.auth.domain.repository.RefreshTokenRepository;
+import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
 import com.samuelgularte.financeflow.auth.domain.service.TokenHasher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -37,6 +38,9 @@ class RefreshTokenUseCaseTest {
     @Mock
     private TokenProvider tokenProvider;
 
+    @Mock
+    private UserRepository userRepository;
+
     @InjectMocks
     private RefreshTokenUseCase refreshTokenUseCase;
 
@@ -47,22 +51,18 @@ class RefreshTokenUseCaseTest {
     private static final String USERNAME = "joao";
     private static final String NEW_JWT = "new.jwt.token";
 
-    private RefreshTokenRequest buildRequest() {
-        RefreshTokenRequest request = new RefreshTokenRequest();
-        request.setToken(OLD_TOKEN_VALUE);
-        return request;
-    }
+    private final User testUser = User.create(USERNAME, "joao@email.com", "encoded");
 
-    private User createUser() {
-        return new User(USERNAME, "joao@email.com", "encoded");
+    private RefreshTokenRequest buildRequest() {
+        return new RefreshTokenRequest(OLD_TOKEN_VALUE);
     }
 
     private RefreshToken createValidToken() {
-        return new RefreshToken(OLD_TOKEN_VALUE, Instant.now().plus(1, ChronoUnit.DAYS), createUser());
+        return RefreshToken.create(OLD_TOKEN_VALUE, Instant.now().plus(1, ChronoUnit.DAYS), testUser.id());
     }
 
     private RefreshToken createExpiredToken() {
-        return new RefreshToken(OLD_TOKEN_VALUE, Instant.now().minus(1, ChronoUnit.DAYS), createUser());
+        return RefreshToken.create(OLD_TOKEN_VALUE, Instant.now().minus(1, ChronoUnit.DAYS), testUser.id());
     }
 
     @Nested
@@ -74,15 +74,16 @@ class RefreshTokenUseCaseTest {
         void shouldReturnNewTokens() {
             RefreshToken oldToken = createValidToken();
             when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(oldToken));
+            when(userRepository.findById(testUser.id())).thenReturn(Optional.of(testUser));
             when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             TokenResponse response = refreshTokenUseCase.execute(buildRequest());
 
-            assertEquals(NEW_JWT, response.getToken());
-            assertEquals("Bearer", response.getType());
+            assertEquals(NEW_JWT, response.token());
+            assertEquals("Bearer", response.type());
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
-            assertDoesNotThrow(() -> UUID.fromString(response.getRefreshToken()));
-            assertEquals(TokenHasher.hash(response.getRefreshToken()), refreshTokenCaptor.getValue().getToken());
+            assertDoesNotThrow(() -> UUID.fromString(response.refreshToken()));
+            assertEquals(TokenHasher.hash(response.refreshToken()), refreshTokenCaptor.getValue().token());
         }
 
         @Test
@@ -90,6 +91,7 @@ class RefreshTokenUseCaseTest {
         void shouldDeleteOldToken() {
             RefreshToken oldToken = createValidToken();
             when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(oldToken));
+            when(userRepository.findById(testUser.id())).thenReturn(Optional.of(testUser));
             when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             refreshTokenUseCase.execute(buildRequest());
@@ -104,16 +106,17 @@ class RefreshTokenUseCaseTest {
         void shouldGenerateUuidWith7DayExpiry() {
             RefreshToken oldToken = createValidToken();
             when(refreshTokenRepository.findByToken(TokenHasher.hash(OLD_TOKEN_VALUE))).thenReturn(Optional.of(oldToken));
+            when(userRepository.findById(testUser.id())).thenReturn(Optional.of(testUser));
             when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(NEW_JWT);
 
             refreshTokenUseCase.execute(buildRequest());
 
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
             RefreshToken savedToken = refreshTokenCaptor.getValue();
-            assertEquals(64, savedToken.getToken().length());
-            assertTrue(savedToken.getToken().matches("[0-9a-f]{64}"));
+            assertEquals(64, savedToken.token().length());
+            assertTrue(savedToken.token().matches("[0-9a-f]{64}"));
             Instant expectedExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
-            long diffSeconds = ChronoUnit.SECONDS.between(savedToken.getExpiryDate(), expectedExpiry);
+            long diffSeconds = ChronoUnit.SECONDS.between(savedToken.expiryDate(), expectedExpiry);
             assertTrue(Math.abs(diffSeconds) < 5);
         }
     }

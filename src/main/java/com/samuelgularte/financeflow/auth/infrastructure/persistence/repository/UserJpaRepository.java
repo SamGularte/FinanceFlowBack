@@ -1,17 +1,16 @@
 package com.samuelgularte.financeflow.auth.infrastructure.persistence.repository;
 
-import com.samuelgularte.financeflow.auth.domain.model.User;
-import com.samuelgularte.financeflow.auth.domain.repository.UserRepository;
+import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-public interface UserJpaRepository extends JpaRepository<User, UUID>, UserRepository {
+public interface UserJpaRepository extends JpaRepository<UserEntity, UUID> {
 
-    Optional<User> findByUserName(String username);
+    Optional<UserEntity> findByUserName(String username);
 
-    Optional<User> findByEmail(String email);
+    Optional<UserEntity> findByEmail(String email);
 
     boolean existsByEmail(String email);
 

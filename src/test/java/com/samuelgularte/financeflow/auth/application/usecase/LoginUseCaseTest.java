@@ -1,9 +1,9 @@
 package com.samuelgularte.financeflow.auth.application.usecase;
 
+import com.samuelgularte.financeflow.auth.application.output.TokenResponse;
 import com.samuelgularte.financeflow.auth.application.port.AuthenticationPort;
 import com.samuelgularte.financeflow.auth.application.port.TokenProvider;
 import com.samuelgularte.financeflow.auth.application.usecase.request.LoginRequest;
-import com.samuelgularte.financeflow.auth.application.usecase.response.TokenResponse;
 import com.samuelgularte.financeflow.auth.domain.exception.InvalidCredentialsException;
 import com.samuelgularte.financeflow.auth.domain.model.RefreshToken;
 import com.samuelgularte.financeflow.auth.domain.model.User;
@@ -58,21 +58,15 @@ class LoginUseCaseTest {
     private static final String JWT_TOKEN = "jwt.token.here";
 
     private LoginRequest buildValidRequest() {
-        LoginRequest request = new LoginRequest();
-        request.setLogin(USERNAME);
-        request.setPassword(PASSWORD);
-        return request;
+        return new LoginRequest(USERNAME, PASSWORD);
     }
 
     private LoginRequest buildEmailRequest() {
-        LoginRequest request = new LoginRequest();
-        request.setLogin(EMAIL);
-        request.setPassword(PASSWORD);
-        return request;
+        return new LoginRequest(EMAIL, PASSWORD);
     }
 
     private User createUser() {
-        return new User(USERNAME, EMAIL, "encoded");
+        return User.create(USERNAME, EMAIL, "encoded");
     }
 
     private User mockSuccess() {
@@ -94,11 +88,11 @@ class LoginUseCaseTest {
 
             TokenResponse response = loginUseCase.execute(buildValidRequest());
 
-            assertEquals(JWT_TOKEN, response.getToken());
-            assertEquals("Bearer", response.getType());
+            assertEquals(JWT_TOKEN, response.token());
+            assertEquals("Bearer", response.type());
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
-            assertDoesNotThrow(() -> UUID.fromString(response.getRefreshToken()));
-            assertEquals(TokenHasher.hash(response.getRefreshToken()), refreshTokenCaptor.getValue().getToken());
+            assertDoesNotThrow(() -> UUID.fromString(response.refreshToken()));
+            assertEquals(TokenHasher.hash(response.refreshToken()), refreshTokenCaptor.getValue().token());
         }
 
         @Test
@@ -109,7 +103,7 @@ class LoginUseCaseTest {
             loginUseCase.execute(buildValidRequest());
 
             InOrder inOrder = inOrder(refreshTokenRepository);
-            inOrder.verify(refreshTokenRepository).deleteByUser(same(user));
+            inOrder.verify(refreshTokenRepository).deleteByUserId(same(user.id()));
             inOrder.verify(refreshTokenRepository).save(any(RefreshToken.class));
         }
 
@@ -122,10 +116,10 @@ class LoginUseCaseTest {
 
             verify(refreshTokenRepository).save(refreshTokenCaptor.capture());
             RefreshToken savedToken = refreshTokenCaptor.getValue();
-            assertEquals(64, savedToken.getToken().length());
-            assertTrue(savedToken.getToken().matches("[0-9a-f]{64}"));
+            assertEquals(64, savedToken.token().length());
+            assertTrue(savedToken.token().matches("[0-9a-f]{64}"));
             Instant expectedExpiry = Instant.now().plus(7, ChronoUnit.DAYS);
-            long diffSeconds = ChronoUnit.SECONDS.between(savedToken.getExpiryDate(), expectedExpiry);
+            long diffSeconds = ChronoUnit.SECONDS.between(savedToken.expiryDate(), expectedExpiry);
             assertTrue(Math.abs(diffSeconds) < 5);
         }
 
@@ -136,7 +130,7 @@ class LoginUseCaseTest {
 
             TokenResponse response = loginUseCase.execute(buildEmailRequest());
 
-            assertEquals(JWT_TOKEN, response.getToken());
+            assertEquals(JWT_TOKEN, response.token());
             verify(authenticationPort).authenticate(EMAIL, PASSWORD);
             verify(userRepository).findByUserName(USERNAME);
         }

@@ -1,6 +1,7 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.http;
 
 import com.samuelgularte.financeflow.auth.domain.model.User;
+import com.samuelgularte.financeflow.auth.infrastructure.security.CookieUtils;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
@@ -76,6 +77,9 @@ class TransactionControllerTest {
     private DeleteTransactionUseCase deleteTransactionUseCase;
 
     @MockitoBean
+    private CookieUtils cookieUtils;
+
+    @MockitoBean
     private TransactionPageMapper pageMapper;
 
     @MockitoBean
@@ -99,8 +103,7 @@ class TransactionControllerTest {
 
     @BeforeEach
     void setUp() {
-        var user = new User("test", "test@email.com", "pass");
-        user.setId(userId);
+        var user = new User(userId, "test", "test@email.com", "pass", null, null);
         userDetails = new CustomUserDetails(user);
     }
 

@@ -41,11 +41,7 @@ class SignUpUseCaseTest {
     private static final String ENCODED_PASSWORD = "$2a$10$encoded";
 
     private SignUpRequest buildValidRequest() {
-        SignUpRequest request = new SignUpRequest();
-        request.setUserName(USERNAME);
-        request.setEmail(EMAIL);
-        request.setPassword(RAW_PASSWORD);
-        return request;
+        return new SignUpRequest(USERNAME, EMAIL, RAW_PASSWORD);
     }
 
     @Nested
@@ -66,9 +62,9 @@ class SignUpUseCaseTest {
             verify(passwordEncoder).encode(RAW_PASSWORD);
             verify(userRepository).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
-            assertEquals(USERNAME, savedUser.getUserName());
-            assertEquals(EMAIL, savedUser.getEmail());
-            assertEquals(ENCODED_PASSWORD, savedUser.getPassword());
+            assertEquals(USERNAME, savedUser.userName());
+            assertEquals(EMAIL, savedUser.email());
+            assertEquals(ENCODED_PASSWORD, savedUser.password());
         }
     }
 
