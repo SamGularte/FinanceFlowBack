@@ -37,7 +37,7 @@ class SignUpUseCaseTest {
 
     private static final String USERNAME = "joao";
     private static final String EMAIL = "joao@email.com";
-    private static final String RAW_PASSWORD = "senha123";
+    private static final String RAW_PASSWORD = "Senha123!";
     private static final String ENCODED_PASSWORD = "$2a$10$encoded";
 
     private SignUpRequest buildValidRequest() {

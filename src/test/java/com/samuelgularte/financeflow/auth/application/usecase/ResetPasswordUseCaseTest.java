@@ -45,7 +45,7 @@ class ResetPasswordUseCaseTest {
 
     private static final String TOKEN = "reset-token-value";
     private static final String HASHED_TOKEN = TokenHasher.hash(TOKEN);
-    private static final String NEW_PASSWORD = "novaSenha123";
+    private static final String NEW_PASSWORD = "NovaSenha123!";
     private static final String ENCODED_PASSWORD = "$2a$10$encoded";
     private static final String USERNAME = "joao";
 

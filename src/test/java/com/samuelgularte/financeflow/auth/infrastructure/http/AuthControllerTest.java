@@ -101,7 +101,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signup")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"pass123\"}"))
+                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.message").value("User created"));
         }
@@ -114,7 +114,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signup")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"pass123\"}"))
+                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.message").value("Username 'joao' already taken"));
         }
@@ -127,7 +127,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signup")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"pass123\"}"))
+                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.message").value("Email: joao@email.com already registered"));
         }
@@ -225,7 +225,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/reset-password")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"token\":\"valid-token\",\"newPassword\":\"newPass123\"}"))
+                            .content("{\"token\":\"valid-token\",\"newPassword\":\"NewPass123!\"}"))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$.message").value("Password updated"));
         }
@@ -238,7 +238,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/reset-password")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"token\":\"invalid-token\",\"newPassword\":\"newPass123\"}"))
+                            .content("{\"token\":\"invalid-token\",\"newPassword\":\"NewPass123!\"}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.message").value("Invalid or expired password reset token"));
         }
