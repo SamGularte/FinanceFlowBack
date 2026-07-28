@@ -7,9 +7,12 @@ import com.samuelgularte.financeflow.budgeting.domain.repository.TransactionRepo
 import com.samuelgularte.financeflow.budgeting.infrastructure.persistence.entity.TransactionEntity;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -25,10 +28,31 @@ public class TransactionRepositoryImpl implements TransactionRepository {
     }
 
     @Override
-    public List<Transaction> findAllByCategory(Category category) {
-        return jpaRepository.findAllByCategory(category)
-                .stream()
-                .map(TransactionEntity::toDomain)
-                .toList();
+    public Page<Transaction> findAllByCategory(Category category, Pageable pageable) {
+        return jpaRepository.findAllByCategory(category, pageable)
+                .map(TransactionEntity::toDomain);
+    }
+
+    @Override
+    public Page<Transaction> findAllByUserId(UUID userId, Pageable pageable) {
+        return jpaRepository.findAllByUserId(userId, pageable)
+                .map(TransactionEntity::toDomain);
+    }
+
+    @Override
+    public Page<Transaction> findAllByUserIdAndCategory(UUID userId, Category category, Pageable pageable) {
+        return jpaRepository.findAllByUserIdAndCategory(userId, category, pageable)
+                .map(TransactionEntity::toDomain);
+    }
+
+    @Override
+    public Optional<Transaction> findByIdAndUserId(UUID id, UUID userId) {
+        return jpaRepository.findByIdAndUserId(id, userId)
+                .map(TransactionEntity::toDomain);
+    }
+
+    @Override
+    public void delete(Transaction transaction) {
+        jpaRepository.deleteById(transaction.id());
     }
 }

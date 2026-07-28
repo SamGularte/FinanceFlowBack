@@ -11,9 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,6 +22,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @Import(TransactionRepositoryImpl.class)
 class TransactionRepositoryImplTest {
+
+    private static final PageRequest PAGE = PageRequest.of(0, 20);
 
     @Autowired
     private TransactionRepositoryImpl repository;
@@ -89,23 +92,22 @@ class TransactionRepositoryImplTest {
         @Test
         @DisplayName("should return transactions matching the category")
         void shouldReturnMatchingTransactions() {
-            Transaction mercado = repository.save(
-                    Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
             Transaction remedio = repository.save(
                     Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            List<Transaction> result = repository.findAllByCategory(Category.PHARMACY);
+            Page<Transaction> result = repository.findAllByCategory(Category.PHARMACY, PAGE);
 
-            assertEquals(1, result.size());
-            assertEquals(remedio.id(), result.get(0).id());
+            assertEquals(1, result.getTotalElements());
+            assertEquals(remedio.id(), result.getContent().get(0).id());
         }
 
         @Test
-        @DisplayName("should return empty list when no transaction matches the category")
+        @DisplayName("should return empty page when no transaction matches")
         void shouldReturnEmptyWhenNoMatch() {
             repository.save(Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            List<Transaction> result = repository.findAllByCategory(Category.AUTO);
+            Page<Transaction> result = repository.findAllByCategory(Category.AUTO, PAGE);
 
             assertTrue(result.isEmpty());
         }
@@ -117,9 +119,125 @@ class TransactionRepositoryImplTest {
             repository.save(Transaction.create("Farmácia 2", 2000, Category.PHARMACY, testUser.getId()));
             repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
 
-            List<Transaction> result = repository.findAllByCategory(Category.PHARMACY);
+            Page<Transaction> result = repository.findAllByCategory(Category.PHARMACY, PAGE);
 
-            assertEquals(2, result.size());
+            assertEquals(2, result.getTotalElements());
+        }
+    }
+
+    @Nested
+    @DisplayName("findByIdAndUserId")
+    class FindByIdAndUserId {
+
+        @Test
+        @DisplayName("should return transaction when found")
+        void shouldReturnTransaction() {
+            Transaction tx = repository.save(
+                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+
+            var found = repository.findByIdAndUserId(tx.id(), testUser.getId());
+
+            assertTrue(found.isPresent());
+            assertEquals(tx.id(), found.get().id());
+        }
+
+        @Test
+        @DisplayName("should return empty when id does not belong to user")
+        void shouldReturnEmptyForWrongUser() {
+            Transaction tx = repository.save(
+                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+
+            var found = repository.findByIdAndUserId(tx.id(), UUID.randomUUID());
+
+            assertTrue(found.isEmpty());
+        }
+
+        @Test
+        @DisplayName("should return empty when id does not exist")
+        void shouldReturnEmptyForNonExistentId() {
+            var found = repository.findByIdAndUserId(UUID.randomUUID(), testUser.getId());
+
+            assertTrue(found.isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("delete")
+    class Delete {
+
+        @Test
+        @DisplayName("should remove transaction from database")
+        void shouldRemoveTransaction() {
+            Transaction tx = repository.save(
+                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+
+            repository.delete(tx);
+
+            var found = repository.findByIdAndUserId(tx.id(), testUser.getId());
+            assertTrue(found.isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllByUserId")
+    class FindAllByUserId {
+
+        @Test
+        @DisplayName("should return only transactions of the given user")
+        void shouldReturnUserTransactions() {
+            Transaction tx = repository.save(
+                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+
+            Page<Transaction> result = repository.findAllByUserId(testUser.getId(), PAGE);
+
+            assertEquals(1, result.getTotalElements());
+            assertEquals(tx.id(), result.getContent().get(0).id());
+        }
+
+        @Test
+        @DisplayName("should return empty for user with no transactions")
+        void shouldReturnEmptyForUserWithoutTransactions() {
+            Page<Transaction> result = repository.findAllByUserId(testUser.getId(), PAGE);
+
+            assertTrue(result.isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("findAllByUserIdAndCategory")
+    class FindAllByUserIdAndCategory {
+
+        @Test
+        @DisplayName("should filter by user and category")
+        void shouldFilterByUserAndCategory() {
+            repository.save(Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+
+            Page<Transaction> result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.PHARMACY, PAGE);
+
+            assertEquals(1, result.getTotalElements());
+            assertEquals(Category.PHARMACY, result.getContent().get(0).category());
+        }
+
+        @Test
+        @DisplayName("should return empty when category does not match")
+        void shouldReturnEmptyForNonMatchingCategory() {
+            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+
+            Page<Transaction> result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.AUTO, PAGE);
+
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        @DisplayName("should return all user transactions when category is null")
+        void shouldReturnAllWhenCategoryNull() {
+            repository.save(Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+
+            Page<Transaction> result = repository.findAllByUserIdAndCategory(testUser.getId(), null, PAGE);
+
+            assertEquals(2, result.getTotalElements());
         }
     }
 }
