@@ -137,7 +137,7 @@ class RateLimitFilterTest {
         void shouldSkipNonTargetPaths() throws Exception {
             RateLimitFilter rateLimitFilter = new RateLimitFilter();
             HttpServletRequest request = mock(HttpServletRequest.class);
-            when(request.getRequestURI()).thenReturn("/auth/public/signup");
+            when(request.getRequestURI()).thenReturn("/transactions");
 
             HttpServletResponse response = mock(HttpServletResponse.class);
             FilterChain chain = mock(FilterChain.class);

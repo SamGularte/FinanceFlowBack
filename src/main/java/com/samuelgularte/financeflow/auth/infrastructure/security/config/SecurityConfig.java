@@ -3,6 +3,7 @@ package com.samuelgularte.financeflow.auth.infrastructure.security.config;
 import com.samuelgularte.financeflow.auth.infrastructure.security.AuthTokenFilter;
 import com.samuelgularte.financeflow.auth.infrastructure.security.RateLimitFilter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.config.Customizer;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -34,6 +35,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/auth/public/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
+                )
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts ->
+                                hsts.includeSubDomains(true).maxAgeInSeconds(31536000))
+                        .contentTypeOptions(Customizer.withDefaults())
+                        .frameOptions(frame -> frame.deny())
                 )
                 .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
