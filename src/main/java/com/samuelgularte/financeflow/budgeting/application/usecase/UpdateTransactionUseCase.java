@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.application.usecase;
 
-import com.samuelgularte.financeflow.budgeting.application.input.UpdateTransactionInput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.repository.TransactionRepository;
@@ -25,7 +25,7 @@ public class UpdateTransactionUseCase {
     }
 
     @Transactional
-    public TransactionOutput execute(UUID id, UUID userId, UpdateTransactionInput input) {
+    public TransactionOutput execute(UUID id, UUID userId, UpdateTransactionRequest input) {
         log.info("Updating transaction id={}, userId={}", id, userId);
         Transaction existing = transactionRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new EntityNotFoundException(messages.get("error.transaction.not-found")));

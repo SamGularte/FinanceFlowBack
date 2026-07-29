@@ -1,4 +1,4 @@
-package com.samuelgularte.financeflow.budgeting.application.input;
+package com.samuelgularte.financeflow.budgeting.application.usecase.request;
 
 import jakarta.validation.constraints.NotBlank;
 

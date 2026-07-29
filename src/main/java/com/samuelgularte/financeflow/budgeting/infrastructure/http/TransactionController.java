@@ -2,13 +2,14 @@ package com.samuelgularte.financeflow.budgeting.infrastructure.http;
 
 import com.samuelgularte.financeflow.auth.application.output.MessageResponse;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
-import com.samuelgularte.financeflow.budgeting.application.input.TextRequest;
-import com.samuelgularte.financeflow.budgeting.application.input.UpdateTransactionInput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.request.TextRequest;
+import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionPageMapper;
 import com.samuelgularte.financeflow.budgeting.application.usecase.DeleteTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.FetchUserTransactionsUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessAudioUseCase;
+import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessImageUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessTextUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.UpdateTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
@@ -39,6 +40,7 @@ public class TransactionController {
 
     private final ProcessTextUseCase processTextUseCase;
     private final ProcessAudioUseCase processAudioUseCase;
+    private final ProcessImageUseCase processImageUseCase;
     private final FetchUserTransactionsUseCase fetchUserTransactionsUseCase;
     private final UpdateTransactionUseCase updateTransactionUseCase;
     private final DeleteTransactionUseCase deleteTransactionUseCase;
@@ -46,12 +48,14 @@ public class TransactionController {
 
     public TransactionController(ProcessTextUseCase processTextUseCase,
                                  ProcessAudioUseCase processAudioUseCase,
+                                 ProcessImageUseCase processImageUseCase,
                                  FetchUserTransactionsUseCase fetchUserTransactionsUseCase,
                                  UpdateTransactionUseCase updateTransactionUseCase,
                                  DeleteTransactionUseCase deleteTransactionUseCase,
                                  TransactionPageMapper pageMapper) {
         this.processTextUseCase = processTextUseCase;
         this.processAudioUseCase = processAudioUseCase;
+        this.processImageUseCase = processImageUseCase;
         this.fetchUserTransactionsUseCase = fetchUserTransactionsUseCase;
         this.updateTransactionUseCase = updateTransactionUseCase;
         this.deleteTransactionUseCase = deleteTransactionUseCase;
@@ -86,10 +90,19 @@ public class TransactionController {
         return ResponseEntity.ok(new MessageResponse(response));
     }
 
+    @PostMapping(value = "/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageResponse> processImage(
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal CustomUserDetails userDetails) throws IOException {
+        log.info("Processing image for userId={}", userDetails.getUserId());
+        String response = processImageUseCase.execute(file, userDetails.getUserId());
+        return ResponseEntity.ok(new MessageResponse(response));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<TransactionOutput> updateTransaction(
             @PathVariable("id") UUID id,
-            @Valid @RequestBody UpdateTransactionInput input,
+            @Valid @RequestBody UpdateTransactionRequest input,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("Updating transaction id={}, userId={}", id, userDetails.getUserId());
         return ResponseEntity.ok(updateTransactionUseCase.execute(id, userDetails.getUserId(), input));

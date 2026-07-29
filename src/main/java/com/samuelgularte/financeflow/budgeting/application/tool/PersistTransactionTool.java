@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.application.tool;
 
-import com.samuelgularte.financeflow.budgeting.application.input.PersistTransactionInput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.request.PersistTransactionRequest;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.repository.TransactionRepository;
@@ -26,7 +26,7 @@ public class PersistTransactionTool {
     }
 
     @Tool(name = "persist_transaction", description = "Persiste uma nova transacao financeira")
-    public TransactionOutput execute(PersistTransactionInput input, ToolContext context) {
+    public TransactionOutput execute(PersistTransactionRequest input, ToolContext context) {
         String userIdStr = (String) context.getContext().get("userId");
         if (userIdStr == null) {
             throw new IllegalArgumentException(messages.get("error.tool.user-id-required"));

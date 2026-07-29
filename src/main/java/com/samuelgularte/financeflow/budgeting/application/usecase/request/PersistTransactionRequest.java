@@ -1,9 +1,9 @@
-package com.samuelgularte.financeflow.budgeting.application.input;
+package com.samuelgularte.financeflow.budgeting.application.usecase.request;
 
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import org.springframework.ai.tool.annotation.ToolParam;
 
-public record PersistTransactionInput(
+public record PersistTransactionRequest(
         @ToolParam(description = "Descricao do gasto")
         String description,
 

@@ -5,12 +5,13 @@ import com.samuelgularte.financeflow.auth.infrastructure.security.CookieUtils;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
-import com.samuelgularte.financeflow.budgeting.application.input.UpdateTransactionInput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionPageMapper;
 import com.samuelgularte.financeflow.budgeting.application.usecase.DeleteTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.FetchUserTransactionsUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessAudioUseCase;
+import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessImageUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessTextUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.UpdateTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
@@ -68,6 +69,9 @@ class TransactionControllerTest {
     private ProcessAudioUseCase processAudioUseCase;
 
     @MockitoBean
+    private ProcessImageUseCase processImageUseCase;
+
+    @MockitoBean
     private FetchUserTransactionsUseCase fetchUserTransactionsUseCase;
 
     @MockitoBean
@@ -123,6 +127,25 @@ class TransactionControllerTest {
                             .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.message").value("Transação registrada via áudio!"));
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /transactions/image")
+    class PostImage {
+
+        @Test
+        @DisplayName("should return 200 with success message")
+        void shouldReturnSuccessMessage() throws Exception {
+            when(processImageUseCase.execute(any(), eq(userId))).thenReturn("Transação registrada via imagem!");
+
+            var imageFile = new MockMultipartFile("file", "receipt.jpg", "image/jpeg", "fake-image".getBytes());
+
+            mockMvc.perform(multipart("/transactions/image")
+                            .file(imageFile)
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Transação registrada via imagem!"));
         }
     }
 

@@ -1,6 +1,6 @@
 package com.samuelgularte.financeflow.budgeting.application.usecase;
 
-import com.samuelgularte.financeflow.budgeting.application.input.UpdateTransactionInput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
@@ -53,7 +53,7 @@ class UpdateTransactionUseCaseTest {
             var existing = new Transaction(transactionId, "Old", 1000, Category.OTHER, userId, createdAt);
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(existing));
 
-            var input = new UpdateTransactionInput("New", 2000L, Category.SUPERMARKET);
+            var input = new UpdateTransactionRequest("New", 2000L, Category.SUPERMARKET);
             var saved = new Transaction(transactionId, "New", 2000, Category.SUPERMARKET, userId, createdAt);
             when(repository.save(any())).thenReturn(saved);
 
@@ -70,7 +70,7 @@ class UpdateTransactionUseCaseTest {
             var existing = new Transaction(transactionId, "Existing", 5000, Category.SUPERMARKET, userId, createdAt);
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(existing));
 
-            var input = new UpdateTransactionInput(null, null, null);
+            var input = new UpdateTransactionRequest(null, null, null);
             when(repository.save(any())).thenReturn(existing);
 
             TransactionOutput result = useCase.execute(transactionId, userId, input);
@@ -85,7 +85,7 @@ class UpdateTransactionUseCaseTest {
         void shouldThrowWhenNotFound() {
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.empty());
 
-            var input = new UpdateTransactionInput("New", 1000L, Category.OTHER);
+            var input = new UpdateTransactionRequest("New", 1000L, Category.OTHER);
 
             assertThrows(EntityNotFoundException.class, () -> useCase.execute(transactionId, userId, input));
         }
