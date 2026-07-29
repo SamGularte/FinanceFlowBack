@@ -5,6 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public record UpdateTransactionRequest(
 
@@ -14,6 +15,8 @@ public record UpdateTransactionRequest(
         @PositiveOrZero
         BigDecimal amount,
 
-        Category category
+        Category category,
+
+        LocalDateTime createdAt
 ) {
 }

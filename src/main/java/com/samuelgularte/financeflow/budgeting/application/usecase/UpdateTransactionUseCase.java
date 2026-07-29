@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -34,8 +35,9 @@ public class UpdateTransactionUseCase {
         String description = input.description() != null ? input.description() : existing.description();
         BigDecimal amount = input.amount() != null ? input.amount() : existing.amount();
         var category = input.category() != null ? input.category() : existing.category();
+        LocalDateTime createdAt = input.createdAt() != null ? input.createdAt() : existing.createdAt();
 
-        Transaction updated = new Transaction(existing.id(), description, amount, category, existing.userId(), existing.createdAt());
+        Transaction updated = new Transaction(existing.id(), description, amount, category, existing.userId(), createdAt);
         return TransactionOutput.from(transactionRepository.save(updated));
     }
 }

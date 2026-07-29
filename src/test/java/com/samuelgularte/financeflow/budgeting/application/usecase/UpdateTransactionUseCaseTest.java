@@ -55,7 +55,7 @@ class UpdateTransactionUseCaseTest {
             var existing = new Transaction(transactionId, "Old", BigDecimal.valueOf(1000, 2), Category.OTHER, userId, createdAt);
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(existing));
 
-            var input = new UpdateTransactionRequest("New", BigDecimal.valueOf(2000, 2), Category.SUPERMARKET);
+            var input = new UpdateTransactionRequest("New", BigDecimal.valueOf(2000, 2), Category.SUPERMARKET, null);
             var saved = new Transaction(transactionId, "New", BigDecimal.valueOf(2000, 2), Category.SUPERMARKET, userId, createdAt);
             when(repository.save(any())).thenReturn(saved);
 
@@ -67,12 +67,28 @@ class UpdateTransactionUseCaseTest {
         }
 
         @Test
+        @DisplayName("should update createdAt when provided")
+        void shouldUpdateCreatedAt() {
+            var existing = new Transaction(transactionId, "Old", BigDecimal.valueOf(1000, 2), Category.OTHER, userId, createdAt);
+            when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(existing));
+
+            var newDate = LocalDateTime.of(2025, 1, 1, 0, 0, 0);
+            var input = new UpdateTransactionRequest(null, null, null, newDate);
+            var saved = new Transaction(transactionId, "Old", BigDecimal.valueOf(1000, 2), Category.OTHER, userId, newDate);
+            when(repository.save(any())).thenReturn(saved);
+
+            TransactionOutput result = useCase.execute(transactionId, userId, input);
+
+            assertEquals("2025-01-01T00:00", result.createdAt());
+        }
+
+        @Test
         @DisplayName("should keep existing fields when input fields are null")
         void shouldKeepExistingFieldsWhenNull() {
             var existing = new Transaction(transactionId, "Existing", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, userId, createdAt);
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(existing));
 
-            var input = new UpdateTransactionRequest(null, null, null);
+            var input = new UpdateTransactionRequest(null, null, null, null);
             when(repository.save(any())).thenReturn(existing);
 
             TransactionOutput result = useCase.execute(transactionId, userId, input);
@@ -87,7 +103,7 @@ class UpdateTransactionUseCaseTest {
         void shouldThrowWhenNotFound() {
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.empty());
 
-            var input = new UpdateTransactionRequest("New", BigDecimal.valueOf(1000, 2), Category.OTHER);
+            var input = new UpdateTransactionRequest("New", BigDecimal.valueOf(1000, 2), Category.OTHER, null);
 
             assertThrows(EntityNotFoundException.class, () -> useCase.execute(transactionId, userId, input));
         }
