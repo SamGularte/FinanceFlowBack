@@ -27,7 +27,7 @@ public class UserEntity {
     private UUID id;
 
     @Column(name = "username", nullable = false, length = 50)
-    private String userName;
+    private String username;
 
     @Column(name = "email", nullable = false, length = 100)
     private String email;
@@ -45,7 +45,7 @@ public class UserEntity {
     public static UserEntity from(User user) {
         return new UserEntity(
                 user.id(),
-                user.userName(),
+                user.username(),
                 user.email(),
                 user.password(),
                 user.createdDate(),
@@ -54,6 +54,6 @@ public class UserEntity {
     }
 
     public User toDomain() {
-        return new User(this.id, this.userName, this.email, this.password, this.createdDate, this.updatedDate);
+        return new User(this.id, this.username, this.email, this.password, this.createdDate, this.updatedDate);
     }
 }

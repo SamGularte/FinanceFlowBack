@@ -22,15 +22,15 @@ public class SignUpUseCase {
     }
 
     public String execute(SignUpRequest request) {
-        if (userRepository.existsByUserName(request.userName())) {
-            throw new UsernameAlreadyExistsException(request.userName());
+        if (userRepository.existsByUsername(request.username())) {
+            throw new UsernameAlreadyExistsException(request.username());
         }
         if (userRepository.existsByEmail(request.email())) {
             throw new EmailAlreadyRegisteredException(request.email());
         }
 
         User user = User.create(
-                request.userName(),
+                request.username(),
                 request.email(),
                 passwordEncoder.encode(request.password())
         );

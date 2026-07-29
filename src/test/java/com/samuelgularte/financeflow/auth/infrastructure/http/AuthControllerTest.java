@@ -101,7 +101,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signup")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
+                            .content("{\"username\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.message").value("User created"));
         }
@@ -114,7 +114,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signup")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
+                            .content("{\"username\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.message").value("Username 'joao' already taken"));
         }
@@ -127,7 +127,7 @@ class AuthControllerTest {
 
             mockMvc.perform(post("/auth/public/signup")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"userName\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
+                            .content("{\"username\":\"joao\",\"email\":\"joao@email.com\",\"password\":\"Senha123!\"}"))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.message").value("Email: joao@email.com already registered"));
         }
@@ -137,7 +137,7 @@ class AuthControllerTest {
         void shouldReturn400WhenInvalid() throws Exception {
             mockMvc.perform(post("/auth/public/signup")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"userName\":\"\",\"email\":\"invalid\",\"password\":\"\"}"))
+                            .content("{\"username\":\"\",\"email\":\"invalid\",\"password\":\"\"}"))
                     .andExpect(status().isBadRequest());
         }
     }

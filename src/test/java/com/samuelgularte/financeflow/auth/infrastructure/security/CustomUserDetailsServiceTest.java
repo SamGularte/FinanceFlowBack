@@ -41,12 +41,12 @@ class CustomUserDetailsServiceTest {
         @DisplayName("should load user by username")
         void shouldLoadByUsername() {
             User user = createUser();
-            when(userRepository.findByUserName(USERNAME)).thenReturn(Optional.of(user));
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(user));
 
             UserDetails result = customUserDetailsService.loadUserByUsername(USERNAME);
 
             assertEquals(USERNAME, result.getUsername());
-            verify(userRepository).findByUserName(USERNAME);
+            verify(userRepository).findByUsername(USERNAME);
             verify(userRepository, never()).findByEmail(any());
         }
 
@@ -54,13 +54,13 @@ class CustomUserDetailsServiceTest {
         @DisplayName("should load user by email when username is not found")
         void shouldLoadByEmail() {
             User user = createUser();
-            when(userRepository.findByUserName(EMAIL)).thenReturn(Optional.empty());
+            when(userRepository.findByUsername(EMAIL)).thenReturn(Optional.empty());
             when(userRepository.findByEmail(EMAIL)).thenReturn(Optional.of(user));
 
             UserDetails result = customUserDetailsService.loadUserByUsername(EMAIL);
 
             assertEquals(USERNAME, result.getUsername());
-            verify(userRepository).findByUserName(EMAIL);
+            verify(userRepository).findByUsername(EMAIL);
             verify(userRepository).findByEmail(EMAIL);
         }
     }
@@ -72,7 +72,7 @@ class CustomUserDetailsServiceTest {
         @Test
         @DisplayName("should throw UsernameNotFoundException when neither username nor email exists")
         void shouldThrowWhenNotFound() {
-            when(userRepository.findByUserName("unknown")).thenReturn(Optional.empty());
+            when(userRepository.findByUsername("unknown")).thenReturn(Optional.empty());
             when(userRepository.findByEmail("unknown")).thenReturn(Optional.empty());
 
             assertThrows(UsernameNotFoundException.class, () ->

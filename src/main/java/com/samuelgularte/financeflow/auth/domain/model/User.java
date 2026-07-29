@@ -5,14 +5,14 @@ import java.util.UUID;
 
 public record User(
         UUID id,
-        String userName,
+        String username,
         String email,
         String password,
         LocalDateTime createdDate,
         LocalDateTime updatedDate
 ) {
-    public static User create(String userName, String email, String password) {
+    public static User create(String username, String email, String password) {
         var now = LocalDateTime.now();
-        return new User(UUID.randomUUID(), userName, email, password, now, now);
+        return new User(UUID.randomUUID(), username, email, password, now, now);
     }
 }

@@ -40,7 +40,7 @@ public class ResetPasswordUseCase {
 
         User user = userRepository.findById(resetToken.userId())
                 .orElseThrow(InvalidResetTokenException::new);
-        User updated = new User(user.id(), user.userName(), user.email(),
+        User updated = new User(user.id(), user.username(), user.email(),
                 passwordEncoder.encode(newPassword), user.createdDate(), LocalDateTime.now());
         userRepository.save(updated);
 

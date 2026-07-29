@@ -39,7 +39,7 @@ public class LoginUseCase {
     public TokenResponse execute(LoginRequest loginRequest) {
         String username = authenticationPort.authenticate(
                 loginRequest.login(), loginRequest.password());
-        User user = userRepository.findByUserName(username)
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(InvalidCredentialsException::new);
         refreshTokenRepository.deleteByUserId(user.id());
         String rawToken = UUID.randomUUID().toString();

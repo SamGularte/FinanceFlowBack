@@ -45,7 +45,7 @@ public class RefreshTokenUseCase {
 
         User user = userRepository.findById(oldToken.userId())
                 .orElseThrow(InvalidRefreshTokenException::new);
-        String newAccessToken = tokenProvider.generateTokenFromUsername(user.userName());
+        String newAccessToken = tokenProvider.generateTokenFromUsername(user.username());
 
         String newRawToken = UUID.randomUUID().toString();
         String newHashedToken = TokenHasher.hash(newRawToken);

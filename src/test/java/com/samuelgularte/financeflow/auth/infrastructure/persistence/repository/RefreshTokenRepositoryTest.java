@@ -26,8 +26,8 @@ class RefreshTokenRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private UserEntity persistUser(String userName, String email) {
-        return entityManager.persistFlushFind(new UserEntity(UUID.randomUUID(), userName, email, "encoded-pass", null, null));
+    private UserEntity persistUser(String username, String email) {
+        return entityManager.persistFlushFind(new UserEntity(UUID.randomUUID(), username, email, "encoded-pass", null, null));
     }
 
     private RefreshTokenEntity persistToken(String rawTokenValue, UserEntity user) {

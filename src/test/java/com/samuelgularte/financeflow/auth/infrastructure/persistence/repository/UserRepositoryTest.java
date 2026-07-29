@@ -23,13 +23,13 @@ class UserRepositoryTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    private UserEntity createAndPersistUser(String userName, String email) {
-        UserEntity user = new UserEntity(UUID.randomUUID(), userName, email, "encoded-pass", null, null);
+    private UserEntity createAndPersistUser(String username, String email) {
+        UserEntity user = new UserEntity(UUID.randomUUID(), username, email, "encoded-pass", null, null);
         return entityManager.persistFlushFind(user);
     }
 
     @Nested
-    @DisplayName("findByUserName")
+    @DisplayName("findByUsername")
     class FindByUserName {
 
         @Test
@@ -37,17 +37,17 @@ class UserRepositoryTest {
         void shouldReturnUserWhenExists() {
             createAndPersistUser("joao", "joao@email.com");
 
-            Optional<UserEntity> found = userRepository.findByUserName("joao");
+            Optional<UserEntity> found = userRepository.findByUsername("joao");
 
             assertTrue(found.isPresent());
-            assertEquals("joao", found.get().getUserName());
+            assertEquals("joao", found.get().getUsername());
             assertEquals("joao@email.com", found.get().getEmail());
         }
 
         @Test
         @DisplayName("should return empty when username does not exist")
         void shouldReturnEmptyWhenNotExists() {
-            Optional<UserEntity> found = userRepository.findByUserName("naoexiste");
+            Optional<UserEntity> found = userRepository.findByUsername("naoexiste");
 
             assertTrue(found.isEmpty());
         }
@@ -65,7 +65,7 @@ class UserRepositoryTest {
             Optional<UserEntity> found = userRepository.findByEmail("joao@email.com");
 
             assertTrue(found.isPresent());
-            assertEquals("joao", found.get().getUserName());
+            assertEquals("joao", found.get().getUsername());
             assertEquals("joao@email.com", found.get().getEmail());
         }
 
@@ -98,7 +98,7 @@ class UserRepositoryTest {
     }
 
     @Nested
-    @DisplayName("existsByUserName")
+    @DisplayName("existsByUsername")
     class ExistsByUserName {
 
         @Test
@@ -106,13 +106,13 @@ class UserRepositoryTest {
         void shouldReturnTrueWhenExists() {
             createAndPersistUser("joao", "joao@email.com");
 
-            assertTrue(userRepository.existsByUserName("joao"));
+            assertTrue(userRepository.existsByUsername("joao"));
         }
 
         @Test
         @DisplayName("should return false when username does not exist")
         void shouldReturnFalseWhenNotExists() {
-            assertFalse(userRepository.existsByUserName("naoexiste"));
+            assertFalse(userRepository.existsByUsername("naoexiste"));
         }
     }
 

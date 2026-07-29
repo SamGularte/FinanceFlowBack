@@ -72,7 +72,7 @@ class LoginUseCaseTest {
     private User mockSuccess() {
         User user = createUser();
         when(authenticationPort.authenticate(anyString(), anyString())).thenReturn(USERNAME);
-        when(userRepository.findByUserName(USERNAME)).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(user));
         when(tokenProvider.generateTokenFromUsername(USERNAME)).thenReturn(JWT_TOKEN);
         return user;
     }
@@ -132,7 +132,7 @@ class LoginUseCaseTest {
 
             assertEquals(JWT_TOKEN, response.token());
             verify(authenticationPort).authenticate(EMAIL, PASSWORD);
-            verify(userRepository).findByUserName(USERNAME);
+            verify(userRepository).findByUsername(USERNAME);
         }
     }
 
@@ -158,7 +158,7 @@ class LoginUseCaseTest {
         void shouldThrowWhenUserNotFoundAfterAuthentication() {
             LoginRequest request = buildValidRequest();
             when(authenticationPort.authenticate(USERNAME, PASSWORD)).thenReturn(USERNAME);
-            when(userRepository.findByUserName(USERNAME)).thenReturn(Optional.empty());
+            when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
 
             InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class, () -> loginUseCase.execute(request));
 

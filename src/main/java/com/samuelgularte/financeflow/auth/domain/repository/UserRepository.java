@@ -9,13 +9,13 @@ public interface UserRepository {
 
     Optional<User> findById(UUID id);
 
-    Optional<User> findByUserName(String username);
+    Optional<User> findByUsername(String username);
 
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
 
-    boolean existsByUserName(String username);
+    boolean existsByUsername(String username);
 
     User save(User user);
 }

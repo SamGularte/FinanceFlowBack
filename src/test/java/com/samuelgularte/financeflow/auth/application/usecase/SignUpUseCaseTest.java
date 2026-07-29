@@ -52,7 +52,7 @@ class SignUpUseCaseTest {
         @DisplayName("should save user and return message when username and email are unique")
         void shouldSaveUserAndReturnMessage() {
             SignUpRequest request = buildValidRequest();
-            when(userRepository.existsByUserName(USERNAME)).thenReturn(false);
+            when(userRepository.existsByUsername(USERNAME)).thenReturn(false);
             when(userRepository.existsByEmail(EMAIL)).thenReturn(false);
             when(passwordEncoder.encode(RAW_PASSWORD)).thenReturn(ENCODED_PASSWORD);
 
@@ -62,7 +62,7 @@ class SignUpUseCaseTest {
             verify(passwordEncoder).encode(RAW_PASSWORD);
             verify(userRepository).save(userCaptor.capture());
             User savedUser = userCaptor.getValue();
-            assertEquals(USERNAME, savedUser.userName());
+            assertEquals(USERNAME, savedUser.username());
             assertEquals(EMAIL, savedUser.email());
             assertEquals(ENCODED_PASSWORD, savedUser.password());
         }
@@ -76,7 +76,7 @@ class SignUpUseCaseTest {
         @DisplayName("should throw UsernameAlreadyExistsException when username is taken")
         void shouldThrowWhenUsernameExists() {
             SignUpRequest request = buildValidRequest();
-            when(userRepository.existsByUserName(USERNAME)).thenReturn(true);
+            when(userRepository.existsByUsername(USERNAME)).thenReturn(true);
 
             UsernameAlreadyExistsException ex = assertThrows(UsernameAlreadyExistsException.class, () -> signUpUseCase.execute(request));
 
@@ -90,7 +90,7 @@ class SignUpUseCaseTest {
         @DisplayName("should throw EmailAlreadyRegisteredException when email is already registered")
         void shouldThrowWhenEmailExists() {
             SignUpRequest request = buildValidRequest();
-            when(userRepository.existsByUserName(USERNAME)).thenReturn(false);
+            when(userRepository.existsByUsername(USERNAME)).thenReturn(false);
             when(userRepository.existsByEmail(EMAIL)).thenReturn(true);
 
             EmailAlreadyRegisteredException ex = assertThrows(EmailAlreadyRegisteredException.class, () -> signUpUseCase.execute(request));
