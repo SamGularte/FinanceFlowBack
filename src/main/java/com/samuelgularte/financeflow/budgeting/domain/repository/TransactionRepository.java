@@ -33,4 +33,6 @@ public interface TransactionRepository {
     List<Transaction> findTopByUserIdAndMonth(UUID userId, int year, int month, int limit);
 
     long countByUserIdAndMonth(UUID userId, int year, int month);
+
+    List<Transaction> findAllByUserIdAndMonth(UUID userId, int year, int month);
 }

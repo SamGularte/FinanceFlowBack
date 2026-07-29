@@ -6,11 +6,13 @@ import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDeta
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
+import com.samuelgularte.financeflow.budgeting.application.output.ExportReportResult;
 import com.samuelgularte.financeflow.budgeting.application.output.MonthlyDashboardOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.MonthlyInsightOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionPageMapper;
 import com.samuelgularte.financeflow.budgeting.application.usecase.DeleteTransactionUseCase;
+import com.samuelgularte.financeflow.budgeting.application.usecase.ExportMonthlyReportUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.FetchUserTransactionsUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.GenerateMonthlyInsightUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.GetMonthlyDashboardUseCase;
@@ -46,6 +48,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -62,6 +65,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 @WebMvcTest(TransactionController.class)
 @Import(TransactionControllerTest.TestConfig.class)
@@ -93,6 +97,9 @@ class TransactionControllerTest {
 
     @MockitoBean
     private GenerateMonthlyInsightUseCase generateMonthlyInsightUseCase;
+
+    @MockitoBean
+    private ExportMonthlyReportUseCase exportMonthlyReportUseCase;
 
     @MockitoBean
     private CookieUtils cookieUtils;
@@ -326,6 +333,41 @@ class TransactionControllerTest {
                             .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.content").value("Insight padrão."));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /transactions/export/monthly")
+    class ExportMonthly {
+
+        @Test
+        @DisplayName("should return 200 with CSV content")
+        void shouldReturnCsv() throws Exception {
+            String csv = "RELATORIO MENSAL - julho/2026\nTotal;5000,00\n";
+            when(exportMonthlyReportUseCase.execute(eq(userId), eq(2026), eq(7)))
+                    .thenReturn(new ExportReportResult(csv.getBytes(StandardCharsets.UTF_8), 2026, 7));
+
+            mockMvc.perform(get("/transactions/export/monthly")
+                            .param("year", "2026")
+                            .param("month", "7")
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk())
+                    .andExpect(header().string("Content-Disposition", "attachment; filename=relatorio-mensal-2026-7.csv"))
+                    .andExpect(content().contentType("text/csv; charset=UTF-8"))
+                    .andExpect(content().string(csv));
+        }
+
+        @Test
+        @DisplayName("should default year and month when not provided")
+        void shouldDefaultYearAndMonth() throws Exception {
+            String csv = "RELATORIO MENSAL\n";
+            when(exportMonthlyReportUseCase.execute(eq(userId), eq(null), eq(null)))
+                    .thenReturn(new ExportReportResult(csv.getBytes(StandardCharsets.UTF_8), 2026, 7));
+
+            mockMvc.perform(get("/transactions/export/monthly")
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(csv));
         }
     }
 

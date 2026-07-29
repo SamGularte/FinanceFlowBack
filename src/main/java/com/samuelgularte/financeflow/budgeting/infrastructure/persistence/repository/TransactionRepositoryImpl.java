@@ -110,6 +110,15 @@ public class TransactionRepositoryImpl implements TransactionRepository {
         return jpaRepository.countByUserIdAndMonth(userId, year, month);
     }
 
+    @Override
+    public List<Transaction> findAllByUserIdAndMonth(UUID userId, int year, int month) {
+        log.debug("Finding all transactions for userId={}, year={}, month={}", userId, year, month);
+        return jpaRepository.findAllByUserIdAndMonth(userId, year, month)
+                .stream()
+                .map(TransactionEntity::toDomain)
+                .toList();
+    }
+
     private TransactionPage toTransactionPage(Page<TransactionEntity> entities, int page, int size) {
         List<Transaction> content = entities.stream()
                 .map(TransactionEntity::toDomain)

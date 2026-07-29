@@ -2,8 +2,10 @@ package com.samuelgularte.financeflow.budgeting.infrastructure.http;
 
 import com.samuelgularte.financeflow.auth.application.output.MessageResponse;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
+import com.samuelgularte.financeflow.budgeting.application.output.ExportReportResult;
 import com.samuelgularte.financeflow.budgeting.application.output.MonthlyDashboardOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.MonthlyInsightOutput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.ExportMonthlyReportUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.GenerateMonthlyInsightUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.GetMonthlyDashboardUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.TextRequest;
@@ -19,6 +21,8 @@ import com.samuelgularte.financeflow.budgeting.application.usecase.UpdateTransac
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +54,7 @@ public class TransactionController {
     private final DeleteTransactionUseCase deleteTransactionUseCase;
     private final GetMonthlyDashboardUseCase getMonthlyDashboardUseCase;
     private final GenerateMonthlyInsightUseCase generateMonthlyInsightUseCase;
+    private final ExportMonthlyReportUseCase exportMonthlyReportUseCase;
     private final TransactionPageMapper pageMapper;
 
     public TransactionController(ProcessTextUseCase processTextUseCase,
@@ -60,6 +65,7 @@ public class TransactionController {
                                  DeleteTransactionUseCase deleteTransactionUseCase,
                                  GetMonthlyDashboardUseCase getMonthlyDashboardUseCase,
                                  GenerateMonthlyInsightUseCase generateMonthlyInsightUseCase,
+                                 ExportMonthlyReportUseCase exportMonthlyReportUseCase,
                                  TransactionPageMapper pageMapper) {
         this.processTextUseCase = processTextUseCase;
         this.processAudioUseCase = processAudioUseCase;
@@ -69,6 +75,7 @@ public class TransactionController {
         this.deleteTransactionUseCase = deleteTransactionUseCase;
         this.getMonthlyDashboardUseCase = getMonthlyDashboardUseCase;
         this.generateMonthlyInsightUseCase = generateMonthlyInsightUseCase;
+        this.exportMonthlyReportUseCase = exportMonthlyReportUseCase;
         this.pageMapper = pageMapper;
     }
 
@@ -145,5 +152,18 @@ public class TransactionController {
         log.info("Fetching monthly dashboard for userId={}, year={}, month={}", userDetails.getUserId(), year, month);
         var dashboard = getMonthlyDashboardUseCase.execute(userDetails.getUserId(), year, month);
         return ResponseEntity.ok(MonthlyDashboardOutput.from(dashboard));
+    }
+
+    @GetMapping("/export/monthly")
+    public ResponseEntity<Resource> exportMonthlyReport(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        log.info("Exporting monthly report for userId={}, year={}, month={}", userDetails.getUserId(), year, month);
+        ExportReportResult result = exportMonthlyReportUseCase.execute(userDetails.getUserId(), year, month);
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=relatorio-mensal-" + result.year() + "-" + result.month() + ".csv")
+                .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+                .body(new ByteArrayResource(result.content()));
     }
 }

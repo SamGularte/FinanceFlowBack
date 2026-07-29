@@ -38,4 +38,7 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionEntit
 
     @Query("SELECT COUNT(t) FROM TransactionEntity t WHERE t.user.id = :userId AND YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month")
     long countByUserIdAndMonth(@Param("userId") UUID userId, @Param("year") int year, @Param("month") int month);
+
+    @Query("SELECT t FROM TransactionEntity t WHERE t.user.id = :userId AND YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month ORDER BY t.createdAt DESC")
+    List<TransactionEntity> findAllByUserIdAndMonth(@Param("userId") UUID userId, @Param("year") int year, @Param("month") int month);
 }
