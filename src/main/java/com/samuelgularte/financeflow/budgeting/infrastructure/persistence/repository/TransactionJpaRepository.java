@@ -17,14 +17,12 @@ public interface TransactionJpaRepository extends JpaRepository<TransactionEntit
 
     Page<TransactionEntity> findAllByCategory(Category category, Pageable pageable);
 
-    @Query("SELECT t FROM TransactionEntity t WHERE t.user.id = :userId")
-    Page<TransactionEntity> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
+    Page<TransactionEntity> findAllByUserId(UUID userId, Pageable pageable);
 
     @Query("SELECT t FROM TransactionEntity t WHERE t.user.id = :userId AND (:category IS NULL OR t.category = :category)")
     Page<TransactionEntity> findAllByUserIdAndCategory(@Param("userId") UUID userId, @Param("category") Category category, Pageable pageable);
 
-    @Query("SELECT t FROM TransactionEntity t WHERE t.id = :id AND t.user.id = :userId")
-    Optional<TransactionEntity> findByIdAndUserId(@Param("id") UUID id, @Param("userId") UUID userId);
+    Optional<TransactionEntity> findByIdAndUserId(UUID id, UUID userId);
 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM TransactionEntity t WHERE t.user.id = :userId AND YEAR(t.createdAt) = :year AND MONTH(t.createdAt) = :month")
     BigDecimal sumByUserIdAndMonth(@Param("userId") UUID userId, @Param("year") int year, @Param("month") int month);

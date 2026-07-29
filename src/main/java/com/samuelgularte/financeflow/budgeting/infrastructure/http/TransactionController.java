@@ -3,6 +3,8 @@ package com.samuelgularte.financeflow.budgeting.infrastructure.http;
 import com.samuelgularte.financeflow.auth.application.output.MessageResponse;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
 import com.samuelgularte.financeflow.budgeting.application.output.MonthlyDashboardOutput;
+import com.samuelgularte.financeflow.budgeting.application.output.MonthlyInsightOutput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.GenerateMonthlyInsightUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.GetMonthlyDashboardUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.TextRequest;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
@@ -47,6 +49,7 @@ public class TransactionController {
     private final UpdateTransactionUseCase updateTransactionUseCase;
     private final DeleteTransactionUseCase deleteTransactionUseCase;
     private final GetMonthlyDashboardUseCase getMonthlyDashboardUseCase;
+    private final GenerateMonthlyInsightUseCase generateMonthlyInsightUseCase;
     private final TransactionPageMapper pageMapper;
 
     public TransactionController(ProcessTextUseCase processTextUseCase,
@@ -56,6 +59,7 @@ public class TransactionController {
                                  UpdateTransactionUseCase updateTransactionUseCase,
                                  DeleteTransactionUseCase deleteTransactionUseCase,
                                  GetMonthlyDashboardUseCase getMonthlyDashboardUseCase,
+                                 GenerateMonthlyInsightUseCase generateMonthlyInsightUseCase,
                                  TransactionPageMapper pageMapper) {
         this.processTextUseCase = processTextUseCase;
         this.processAudioUseCase = processAudioUseCase;
@@ -64,6 +68,7 @@ public class TransactionController {
         this.updateTransactionUseCase = updateTransactionUseCase;
         this.deleteTransactionUseCase = deleteTransactionUseCase;
         this.getMonthlyDashboardUseCase = getMonthlyDashboardUseCase;
+        this.generateMonthlyInsightUseCase = generateMonthlyInsightUseCase;
         this.pageMapper = pageMapper;
     }
 
@@ -120,6 +125,16 @@ public class TransactionController {
         log.info("Deleting transaction id={}, userId={}", id, userDetails.getUserId());
         deleteTransactionUseCase.execute(id, userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/insights")
+    public ResponseEntity<MonthlyInsightOutput> generateInsight(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        log.info("Generating insight for userId={}, year={}, month={}", userDetails.getUserId(), year, month);
+        var insight = generateMonthlyInsightUseCase.execute(userDetails.getUserId(), year, month);
+        return ResponseEntity.ok(MonthlyInsightOutput.from(insight));
     }
 
     @GetMapping("/dashboard/monthly")

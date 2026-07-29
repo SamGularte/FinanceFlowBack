@@ -48,7 +48,7 @@ public class GetMonthlyDashboardUseCase {
 
         List<Transaction> topTransactions = transactionRepository.findTopByUserIdAndMonth(userId, targetYear, targetMonth, 5);
 
-        LocalDate previousMonthDate = now.withDayOfMonth(1).minusMonths(1);
+        LocalDate previousMonthDate = LocalDate.of(targetYear, targetMonth, 1).minusMonths(1);
         int prevYear = previousMonthDate.getYear();
         int prevMonth = previousMonthDate.getMonthValue();
         BigDecimal previousMonthTotal = transactionRepository.sumByUserIdAndMonth(userId, prevYear, prevMonth);

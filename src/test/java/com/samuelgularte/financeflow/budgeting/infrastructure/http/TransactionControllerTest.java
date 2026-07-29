@@ -7,16 +7,19 @@ import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDeta
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
 import com.samuelgularte.financeflow.budgeting.application.output.MonthlyDashboardOutput;
+import com.samuelgularte.financeflow.budgeting.application.output.MonthlyInsightOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionPageMapper;
 import com.samuelgularte.financeflow.budgeting.application.usecase.DeleteTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.FetchUserTransactionsUseCase;
+import com.samuelgularte.financeflow.budgeting.application.usecase.GenerateMonthlyInsightUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.GetMonthlyDashboardUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessAudioUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessImageUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessTextUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.UpdateTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
+import com.samuelgularte.financeflow.budgeting.domain.MonthlyInsight;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
 import com.samuelgularte.financeflow.budgeting.domain.dashboard.CategorySpending;
@@ -87,6 +90,9 @@ class TransactionControllerTest {
 
     @MockitoBean
     private GetMonthlyDashboardUseCase getMonthlyDashboardUseCase;
+
+    @MockitoBean
+    private GenerateMonthlyInsightUseCase generateMonthlyInsightUseCase;
 
     @MockitoBean
     private CookieUtils cookieUtils;
@@ -280,6 +286,46 @@ class TransactionControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"text\":\"\"}"))
                     .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("POST /transactions/insights")
+    class PostInsights {
+
+        @Test
+        @DisplayName("should return 200 with insight content")
+        void shouldReturnInsight() throws Exception {
+            var insight = new MonthlyInsight(
+                    UUID.randomUUID(), userId, 2026, 7,
+                    "Insight gerado pelo Gemini.",
+                    LocalDateTime.of(2026, 7, 29, 10, 0, 0)
+            );
+            when(generateMonthlyInsightUseCase.execute(eq(userId), eq(2026), eq(7))).thenReturn(insight);
+
+            mockMvc.perform(post("/transactions/insights")
+                            .param("year", "2026")
+                            .param("month", "7")
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").value("Insight gerado pelo Gemini."))
+                    .andExpect(jsonPath("$.generatedAt").value("2026-07-29T10:00:00"));
+        }
+
+        @Test
+        @DisplayName("should default year and month when not provided")
+        void shouldDefaultYearAndMonth() throws Exception {
+            var insight = new MonthlyInsight(
+                    UUID.randomUUID(), userId, 2026, 7,
+                    "Insight padrão.",
+                    LocalDateTime.now()
+            );
+            when(generateMonthlyInsightUseCase.execute(eq(userId), eq(null), eq(null))).thenReturn(insight);
+
+            mockMvc.perform(post("/transactions/insights")
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.content").value("Insight padrão."));
         }
     }
 
