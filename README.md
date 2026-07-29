@@ -2,6 +2,8 @@
 
 Personal finance management API with AI-powered insights, built with Spring Boot 4.1.0 and Java 25.
 
+This project was created to deepen knowledge and practice with Spring Boot, Java, and related technologies, serving as both a learning exercise and a portfolio piece.
+
 ## Tech Stack
 
 | Layer | Technology |
