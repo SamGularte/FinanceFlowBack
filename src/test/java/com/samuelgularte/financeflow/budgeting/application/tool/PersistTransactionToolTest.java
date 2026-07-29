@@ -55,7 +55,7 @@ class PersistTransactionToolTest {
         @Test
         @DisplayName("should extract userId from ToolContext and pass to Transaction.create")
         void shouldExtractUserIdFromContext() {
-            var input = new PersistTransactionRequest("Compra mercado", 5000, Category.SUPERMARKET, null);
+            var input = new PersistTransactionRequest("Compra mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, null);
             when(transactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             tool.execute(input, toolContext);
@@ -64,7 +64,7 @@ class PersistTransactionToolTest {
             Transaction saved = transactionCaptor.getValue();
             assertEquals(userId, saved.userId());
             assertEquals("Compra mercado", saved.description());
-            assertEquals(5000, saved.amount());
+            assertTrue(BigDecimal.valueOf(5000, 2).compareTo(saved.amount()) == 0);
             assertEquals(Category.SUPERMARKET, saved.category());
             assertNotNull(saved.createdAt());
         }
@@ -72,7 +72,7 @@ class PersistTransactionToolTest {
         @Test
         @DisplayName("should use provided createdAt when informed")
         void shouldUseProvidedCreatedAt() {
-            var input = new PersistTransactionRequest("Compra", 1000, Category.OTHER, "2026-07-26T15:30:00");
+            var input = new PersistTransactionRequest("Compra", BigDecimal.valueOf(1000, 2), Category.OTHER, "2026-07-26T15:30:00");
             when(transactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             tool.execute(input, toolContext);
@@ -84,7 +84,7 @@ class PersistTransactionToolTest {
         @Test
         @DisplayName("should throw when ToolContext has no userId")
         void shouldThrowWhenUserIdMissing() {
-            var input = new PersistTransactionRequest("Compra", 1000, Category.OTHER, null);
+            var input = new PersistTransactionRequest("Compra", BigDecimal.valueOf(1000, 2), Category.OTHER, null);
             var emptyContext = new ToolContext(Map.of());
 
             assertThrows(IllegalArgumentException.class, () -> tool.execute(input, emptyContext));
@@ -93,7 +93,7 @@ class PersistTransactionToolTest {
         @Test
         @DisplayName("should return TransactionOutput with correct fields")
         void shouldReturnTransactionOutput() {
-            var input = new PersistTransactionRequest("Farmácia", 1500, Category.PHARMACY, null);
+            var input = new PersistTransactionRequest("Farmácia", BigDecimal.valueOf(1500, 2), Category.PHARMACY, null);
             when(transactionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
             TransactionOutput output = tool.execute(input, toolContext);

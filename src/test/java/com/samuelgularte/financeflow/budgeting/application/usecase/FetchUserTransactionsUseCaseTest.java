@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +44,7 @@ class FetchUserTransactionsUseCaseTest {
         @Test
         @DisplayName("should return all user transactions when category is null")
         void shouldReturnAllWhenCategoryNull() {
-            var tx = Transaction.create("Compra", 1000, Category.OTHER, userId, LocalDateTime.now());
+            var tx = Transaction.create("Compra", BigDecimal.valueOf(1000, 2), Category.OTHER, userId, LocalDateTime.now());
             var txPage = new TransactionPage(List.of(tx), 1, 0, 20);
             when(repository.findAllByUserId(userId, 0, 20)).thenReturn(txPage);
 
@@ -58,7 +59,7 @@ class FetchUserTransactionsUseCaseTest {
         @Test
         @DisplayName("should filter by category when provided")
         void shouldFilterByCategory() {
-            var tx = Transaction.create("Farmácia", 1500, Category.PHARMACY, userId, LocalDateTime.now());
+            var tx = Transaction.create("Farmácia", BigDecimal.valueOf(1500, 2), Category.PHARMACY, userId, LocalDateTime.now());
             var txPage = new TransactionPage(List.of(tx), 1, 0, 20);
             when(repository.findAllByUserIdAndCategory(userId, Category.PHARMACY, 0, 20)).thenReturn(txPage);
 

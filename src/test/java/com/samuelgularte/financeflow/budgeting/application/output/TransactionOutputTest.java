@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class TransactionOutputTest {
 
@@ -19,12 +22,8 @@ class TransactionOutputTest {
     private final Category category = Category.SUPERMARKET;
     private final LocalDateTime now = LocalDateTime.of(2026, 7, 27, 10, 0, 0);
 
-    private Transaction transaction(long amount, String description) {
+    private Transaction transaction(BigDecimal amount, String description) {
         return new Transaction(transactionId, description, amount, category, userId, now);
-    }
-
-    private static BigDecimal cents(long cents) {
-        return BigDecimal.valueOf(cents, 2);
     }
 
     @Nested
@@ -32,60 +31,44 @@ class TransactionOutputTest {
     class From {
 
         @Test
-        @DisplayName("should convert 5000 cents to 50.00")
-        void shouldConvertCentsToReais() {
-            var output = TransactionOutput.from(transaction(5000, "Compra mercado"));
-            assertEquals(cents(5000), output.valor());
+        @DisplayName("should preserve 50.00")
+        void shouldPreserveValue() {
+            var output = TransactionOutput.from(transaction(BigDecimal.valueOf(5000, 2), "Compra mercado"));
+            assertEquals(BigDecimal.valueOf(5000, 2), output.valor());
         }
 
         @Test
-        @DisplayName("should convert 0 cents to 0.00")
-        void shouldConvertZeroCents() {
-            var output = TransactionOutput.from(transaction(0, "Isento"));
-            assertEquals(cents(0), output.valor());
+        @DisplayName("should preserve 0.00")
+        void shouldPreserveZero() {
+            var output = TransactionOutput.from(transaction(BigDecimal.ZERO, "Isento"));
+            assertEquals(BigDecimal.ZERO, output.valor());
         }
 
         @Test
-        @DisplayName("should convert negative cents to negative reais")
-        void shouldConvertNegativeCents() {
-            var output = TransactionOutput.from(transaction(-5000, "Estorno"));
-            assertEquals(cents(-5000), output.valor());
+        @DisplayName("should preserve negative value")
+        void shouldPreserveNegative() {
+            var output = TransactionOutput.from(transaction(BigDecimal.valueOf(-5000, 2), "Estorno"));
+            assertEquals(BigDecimal.valueOf(-5000, 2), output.valor());
         }
 
         @Test
-        @DisplayName("should convert 1 cent to 0.01")
-        void shouldConvertOneCent() {
-            var output = TransactionOutput.from(transaction(1, "Taxa"));
-            assertEquals(cents(1), output.valor());
+        @DisplayName("should preserve 0.01")
+        void shouldPreserveOneCent() {
+            var output = TransactionOutput.from(transaction(BigDecimal.valueOf(1, 2), "Taxa"));
+            assertEquals(BigDecimal.valueOf(1, 2), output.valor());
         }
 
         @Test
-        @DisplayName("should convert 99 cents to 0.99")
-        void shouldConvertNinetyNineCents() {
-            var output = TransactionOutput.from(transaction(99, "Taxa"));
-            assertEquals(cents(99), output.valor());
-        }
-
-        @Test
-        @DisplayName("should convert Long.MAX_VALUE cents without overflow")
-        void shouldConvertMaxLong() {
-            var output = TransactionOutput.from(transaction(Long.MAX_VALUE, "Grande"));
-            assertEquals(cents(Long.MAX_VALUE), output.valor());
-            assertTrue(output.valor().signum() > 0);
-        }
-
-        @Test
-        @DisplayName("should convert Long.MIN_VALUE cents without overflow")
-        void shouldConvertMinLong() {
-            var output = TransactionOutput.from(transaction(Long.MIN_VALUE, "Mínimo"));
-            assertEquals(cents(Long.MIN_VALUE), output.valor());
-            assertTrue(output.valor().signum() < 0);
+        @DisplayName("should preserve 0.99")
+        void shouldPreserveNinetyNineCents() {
+            var output = TransactionOutput.from(transaction(BigDecimal.valueOf(99, 2), "Taxa"));
+            assertThat(output.valor()).isEqualByComparingTo(BigDecimal.valueOf(99, 2));
         }
 
         @Test
         @DisplayName("should copy id, description and category from transaction")
         void shouldCopyFields() {
-            var output = TransactionOutput.from(transaction(5000, "Compra mercado"));
+            var output = TransactionOutput.from(transaction(BigDecimal.valueOf(5000, 2), "Compra mercado"));
             assertEquals(transactionId.toString(), output.id());
             assertEquals("Compra mercado", output.description());
             assertEquals("SUPERMARKET", output.category());
@@ -94,7 +77,7 @@ class TransactionOutputTest {
         @Test
         @DisplayName("should preserve null description")
         void shouldPreserveNullDescription() {
-            var tx = new Transaction(transactionId, null, 1000, category, userId, now);
+            var tx = new Transaction(transactionId, null, BigDecimal.valueOf(1000, 2), category, userId, now);
             var output = TransactionOutput.from(tx);
             assertNull(output.description());
         }
@@ -102,7 +85,7 @@ class TransactionOutputTest {
         @Test
         @DisplayName("should include createdAt in ISO format")
         void shouldIncludeCreatedAt() {
-            var output = TransactionOutput.from(transaction(5000, "Compra"));
+            var output = TransactionOutput.from(transaction(BigDecimal.valueOf(5000, 2), "Compra"));
             assertEquals("2026-07-27T10:00", output.createdAt());
         }
     }

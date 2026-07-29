@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -44,13 +45,13 @@ class TransactionRepositoryImplTest {
         @Test
         @DisplayName("should persist and return the transaction")
         void shouldPersistAndReturn() {
-            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId());
+            Transaction transaction = Transaction.create("Compra mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId());
 
             Transaction saved = repository.save(transaction);
 
             assertNotNull(saved.id());
             assertEquals(transaction.description(), saved.description());
-            assertEquals(transaction.amount(), saved.amount());
+            assertTrue(transaction.amount().compareTo(saved.amount()) == 0);
             assertEquals(transaction.category(), saved.category());
             assertEquals(testUser.getId(), saved.userId());
         }
@@ -64,12 +65,12 @@ class TransactionRepositoryImplTest {
         @DisplayName("should update fields when saving with existing ID")
         void shouldUpdateExistingTransaction() {
             Transaction transaction = repository.save(
-                    Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+                    Transaction.create("Compra mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId()));
 
             Transaction updated = new Transaction(
                     transaction.id(),
                     "Compra mercado atualizada",
-                    6000,
+                    BigDecimal.valueOf(6000, 2),
                     Category.SUPERMARKET,
                     testUser.getId(),
                     transaction.createdAt()
@@ -78,7 +79,7 @@ class TransactionRepositoryImplTest {
 
             assertEquals(transaction.id(), result.id());
             assertEquals("Compra mercado atualizada", result.description());
-            assertEquals(6000, result.amount());
+            assertTrue(BigDecimal.valueOf(6000, 2).compareTo(result.amount()) == 0);
         }
     }
 
@@ -90,8 +91,8 @@ class TransactionRepositoryImplTest {
         @DisplayName("should return transactions matching the category")
         void shouldReturnMatchingTransactions() {
             Transaction remedio = repository.save(
-                    Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
-            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+                    Transaction.create("Farmácia", BigDecimal.valueOf(1500, 2), Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId()));
 
             TransactionPage result = repository.findAllByCategory(Category.PHARMACY, 0, 20);
 
@@ -102,7 +103,7 @@ class TransactionRepositoryImplTest {
         @Test
         @DisplayName("should return empty page when no transaction matches")
         void shouldReturnEmptyWhenNoMatch() {
-            repository.save(Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+            repository.save(Transaction.create("Compra mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId()));
 
             TransactionPage result = repository.findAllByCategory(Category.AUTO, 0, 20);
 
@@ -112,9 +113,9 @@ class TransactionRepositoryImplTest {
         @Test
         @DisplayName("should return multiple transactions of the same category")
         void shouldReturnMultipleMatchingTransactions() {
-            repository.save(Transaction.create("Farmácia 1", 1000, Category.PHARMACY, testUser.getId()));
-            repository.save(Transaction.create("Farmácia 2", 2000, Category.PHARMACY, testUser.getId()));
-            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+            repository.save(Transaction.create("Farmácia 1", BigDecimal.valueOf(1000, 2), Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Farmácia 2", BigDecimal.valueOf(2000, 2), Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId()));
 
             TransactionPage result = repository.findAllByCategory(Category.PHARMACY, 0, 20);
 
@@ -130,7 +131,7 @@ class TransactionRepositoryImplTest {
         @DisplayName("should return transaction when found")
         void shouldReturnTransaction() {
             Transaction tx = repository.save(
-                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+                    Transaction.create("Compra", BigDecimal.valueOf(1000, 2), Category.OTHER, testUser.getId()));
 
             var found = repository.findByIdAndUserId(tx.id(), testUser.getId());
 
@@ -142,7 +143,7 @@ class TransactionRepositoryImplTest {
         @DisplayName("should return empty when id does not belong to user")
         void shouldReturnEmptyForWrongUser() {
             Transaction tx = repository.save(
-                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+                    Transaction.create("Compra", BigDecimal.valueOf(1000, 2), Category.OTHER, testUser.getId()));
 
             var found = repository.findByIdAndUserId(tx.id(), UUID.randomUUID());
 
@@ -166,7 +167,7 @@ class TransactionRepositoryImplTest {
         @DisplayName("should remove transaction from database")
         void shouldRemoveTransaction() {
             Transaction tx = repository.save(
-                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+                    Transaction.create("Compra", BigDecimal.valueOf(1000, 2), Category.OTHER, testUser.getId()));
 
             repository.deleteById(tx.id());
 
@@ -183,7 +184,7 @@ class TransactionRepositoryImplTest {
         @DisplayName("should return only transactions of the given user")
         void shouldReturnUserTransactions() {
             Transaction tx = repository.save(
-                    Transaction.create("Compra", 1000, Category.OTHER, testUser.getId()));
+                    Transaction.create("Compra", BigDecimal.valueOf(1000, 2), Category.OTHER, testUser.getId()));
 
             TransactionPage result = repository.findAllByUserId(testUser.getId(), 0, 20);
 
@@ -207,8 +208,8 @@ class TransactionRepositoryImplTest {
         @Test
         @DisplayName("should filter by user and category")
         void shouldFilterByUserAndCategory() {
-            repository.save(Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
-            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+            repository.save(Transaction.create("Farmácia", BigDecimal.valueOf(1500, 2), Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId()));
 
             TransactionPage result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.PHARMACY, 0, 20);
 
@@ -219,7 +220,7 @@ class TransactionRepositoryImplTest {
         @Test
         @DisplayName("should return empty when category does not match")
         void shouldReturnEmptyForNonMatchingCategory() {
-            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+            repository.save(Transaction.create("Mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId()));
 
             TransactionPage result = repository.findAllByUserIdAndCategory(testUser.getId(), Category.AUTO, 0, 20);
 
@@ -229,8 +230,8 @@ class TransactionRepositoryImplTest {
         @Test
         @DisplayName("should return all user transactions when category is null")
         void shouldReturnAllWhenCategoryNull() {
-            repository.save(Transaction.create("Farmácia", 1500, Category.PHARMACY, testUser.getId()));
-            repository.save(Transaction.create("Mercado", 5000, Category.SUPERMARKET, testUser.getId()));
+            repository.save(Transaction.create("Farmácia", BigDecimal.valueOf(1500, 2), Category.PHARMACY, testUser.getId()));
+            repository.save(Transaction.create("Mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, testUser.getId()));
 
             TransactionPage result = repository.findAllByUserIdAndCategory(testUser.getId(), null, 0, 20);
 

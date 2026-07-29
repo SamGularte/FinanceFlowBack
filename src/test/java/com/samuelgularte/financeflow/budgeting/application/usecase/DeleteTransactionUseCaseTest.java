@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -45,7 +46,7 @@ class DeleteTransactionUseCaseTest {
         @Test
         @DisplayName("should delete transaction when it exists and belongs to user")
         void shouldDeleteWhenFound() {
-            var transaction = new Transaction(transactionId, "Test", 1000, Category.OTHER, userId, LocalDateTime.now());
+            var transaction = new Transaction(transactionId, "Test", BigDecimal.valueOf(1000, 2), Category.OTHER, userId, LocalDateTime.now());
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(transaction));
 
             useCase.execute(transactionId, userId);

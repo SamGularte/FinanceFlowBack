@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -50,24 +52,24 @@ class UpdateTransactionUseCaseTest {
         @Test
         @DisplayName("should update all fields when all are provided")
         void shouldUpdateAllFields() {
-            var existing = new Transaction(transactionId, "Old", 1000, Category.OTHER, userId, createdAt);
+            var existing = new Transaction(transactionId, "Old", BigDecimal.valueOf(1000, 2), Category.OTHER, userId, createdAt);
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(existing));
 
-            var input = new UpdateTransactionRequest("New", 2000L, Category.SUPERMARKET);
-            var saved = new Transaction(transactionId, "New", 2000, Category.SUPERMARKET, userId, createdAt);
+            var input = new UpdateTransactionRequest("New", BigDecimal.valueOf(2000, 2), Category.SUPERMARKET);
+            var saved = new Transaction(transactionId, "New", BigDecimal.valueOf(2000, 2), Category.SUPERMARKET, userId, createdAt);
             when(repository.save(any())).thenReturn(saved);
 
             TransactionOutput result = useCase.execute(transactionId, userId, input);
 
             assertEquals("New", result.description());
             assertEquals("SUPERMARKET", result.category());
-            assertEquals(BigDecimal.valueOf(2000, 2), result.valor());
+            assertThat(result.valor()).isEqualByComparingTo(BigDecimal.valueOf(2000, 2));
         }
 
         @Test
         @DisplayName("should keep existing fields when input fields are null")
         void shouldKeepExistingFieldsWhenNull() {
-            var existing = new Transaction(transactionId, "Existing", 5000, Category.SUPERMARKET, userId, createdAt);
+            var existing = new Transaction(transactionId, "Existing", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, userId, createdAt);
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.of(existing));
 
             var input = new UpdateTransactionRequest(null, null, null);
@@ -77,7 +79,7 @@ class UpdateTransactionUseCaseTest {
 
             assertEquals("Existing", result.description());
             assertEquals("SUPERMARKET", result.category());
-            assertEquals(BigDecimal.valueOf(5000, 2), result.valor());
+            assertThat(result.valor()).isEqualByComparingTo(BigDecimal.valueOf(5000, 2));
         }
 
         @Test
@@ -85,7 +87,7 @@ class UpdateTransactionUseCaseTest {
         void shouldThrowWhenNotFound() {
             when(repository.findByIdAndUserId(transactionId, userId)).thenReturn(Optional.empty());
 
-            var input = new UpdateTransactionRequest("New", 1000L, Category.OTHER);
+            var input = new UpdateTransactionRequest("New", BigDecimal.valueOf(1000, 2), Category.OTHER);
 
             assertThrows(EntityNotFoundException.class, () -> useCase.execute(transactionId, userId, input));
         }

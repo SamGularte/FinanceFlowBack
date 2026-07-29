@@ -4,13 +4,15 @@ import com.samuelgularte.financeflow.budgeting.domain.Category;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
+import java.math.BigDecimal;
+
 public record UpdateTransactionRequest(
 
         @Size(min = 1, max = 255)
         String description,
 
         @PositiveOrZero
-        Long amount,
+        BigDecimal amount,
 
         Category category
 ) {

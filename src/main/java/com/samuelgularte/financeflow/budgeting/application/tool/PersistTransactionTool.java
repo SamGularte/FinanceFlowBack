@@ -10,6 +10,7 @@ import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -35,7 +36,7 @@ public class PersistTransactionTool {
         LocalDateTime createdAt = input.createdAt() != null && !input.createdAt().isBlank()
                 ? LocalDateTime.parse(input.createdAt())
                 : LocalDateTime.now();
-        if (input.amount() < 0) {
+        if (input.amount().compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException(messages.get("error.tool.amount-negative"));
         }
         log.info("Persisting transaction: description={}, amount={}, category={}, userId={}", input.description(), input.amount(), input.category(), userId);

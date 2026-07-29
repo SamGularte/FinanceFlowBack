@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -31,7 +32,7 @@ public class UpdateTransactionUseCase {
                 .orElseThrow(() -> new EntityNotFoundException(messages.get("error.transaction.not-found")));
 
         String description = input.description() != null ? input.description() : existing.description();
-        long amount = input.amount() != null ? input.amount() : existing.amount();
+        BigDecimal amount = input.amount() != null ? input.amount() : existing.amount();
         var category = input.category() != null ? input.category() : existing.category();
 
         Transaction updated = new Transaction(existing.id(), description, amount, category, existing.userId(), existing.createdAt());

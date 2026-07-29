@@ -156,7 +156,7 @@ class TransactionControllerTest {
         @Test
         @DisplayName("should return paginated transactions")
         void shouldReturnTransactions() throws Exception {
-            var tx = Transaction.create("Compra", 5000, Category.SUPERMARKET, userId, LocalDateTime.of(2026, 7, 27, 10, 0, 0));
+            var tx = Transaction.create("Compra", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, userId, LocalDateTime.of(2026, 7, 27, 10, 0, 0));
             var txPage = new TransactionPage(List.of(tx), 1, 0, 20);
             when(fetchUserTransactionsUseCase.execute(eq(userId), eq(null), anyInt(), anyInt())).thenReturn(txPage);
 
@@ -175,7 +175,7 @@ class TransactionControllerTest {
         @Test
         @DisplayName("should filter by category when provided")
         void shouldFilterByCategory() throws Exception {
-            var tx = Transaction.create("Farmácia", 1500, Category.PHARMACY, userId, LocalDateTime.of(2026, 7, 27, 10, 0, 0));
+            var tx = Transaction.create("Farmácia", BigDecimal.valueOf(1500, 2), Category.PHARMACY, userId, LocalDateTime.of(2026, 7, 27, 10, 0, 0));
             var txPage = new TransactionPage(List.of(tx), 1, 0, 20);
             when(fetchUserTransactionsUseCase.execute(eq(userId), eq(Category.PHARMACY), anyInt(), anyInt())).thenReturn(txPage);
 

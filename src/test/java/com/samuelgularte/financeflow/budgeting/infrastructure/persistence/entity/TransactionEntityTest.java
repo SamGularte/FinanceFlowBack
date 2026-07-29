@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -24,7 +25,7 @@ class TransactionEntityTest {
         @Test
         @DisplayName("should map all fields from domain to entity")
         void shouldMapAllFields() {
-            Transaction transaction = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId, now);
+            Transaction transaction = Transaction.create("Compra mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, userId, now);
             UserEntity user = new UserEntity();
             user.setId(userId);
 
@@ -49,13 +50,13 @@ class TransactionEntityTest {
             UserEntity user = new UserEntity();
             user.setId(userId);
             UUID id = UUID.randomUUID();
-            TransactionEntity entity = new TransactionEntity(id, "Farmácia", 1500, Category.PHARMACY, user, now);
+            TransactionEntity entity = new TransactionEntity(id, "Farmácia", BigDecimal.valueOf(1500, 2), Category.PHARMACY, user, now);
 
             Transaction transaction = entity.toDomain();
 
             assertEquals(id, transaction.id());
             assertEquals("Farmácia", transaction.description());
-            assertEquals(1500, transaction.amount());
+            assertEquals(BigDecimal.valueOf(1500, 2), transaction.amount());
             assertEquals(Category.PHARMACY, transaction.category());
             assertEquals(userId, transaction.userId());
             assertEquals(now, transaction.createdAt());
@@ -69,7 +70,7 @@ class TransactionEntityTest {
         @Test
         @DisplayName("should preserve all fields after from then toDomain")
         void shouldPreserveFields() {
-            Transaction original = Transaction.create("Compra mercado", 5000, Category.SUPERMARKET, userId, now);
+            Transaction original = Transaction.create("Compra mercado", BigDecimal.valueOf(5000, 2), Category.SUPERMARKET, userId, now);
             UserEntity user = new UserEntity();
             user.setId(userId);
 

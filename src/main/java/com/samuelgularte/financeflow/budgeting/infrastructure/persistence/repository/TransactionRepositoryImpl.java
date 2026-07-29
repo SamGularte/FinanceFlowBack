@@ -1,6 +1,9 @@
 package com.samuelgularte.financeflow.budgeting.infrastructure.persistence.repository;
 
 import com.samuelgularte.financeflow.auth.infrastructure.persistence.entity.UserEntity;
+import com.samuelgularte.financeflow.budgeting.domain.dashboard.CategorySpending;
+import com.samuelgularte.financeflow.budgeting.domain.dashboard.DailySpending;
+import com.samuelgularte.financeflow.budgeting.domain.dashboard.MonthlyDashboard;
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
@@ -11,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -34,19 +38,19 @@ public class TransactionRepositoryImpl implements TransactionRepository {
 
     @Override
     public TransactionPage findAllByCategory(Category category, int page, int size) {
-        Page<TransactionEntity> entities = jpaRepository.findAllByCategory(category, PageRequest.of(page, size));
+        Page<TransactionEntity> entities = jpaRepository.findAllByCategory(category, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
         return toTransactionPage(entities, page, size);
     }
 
     @Override
     public TransactionPage findAllByUserId(UUID userId, int page, int size) {
-        Page<TransactionEntity> entities = jpaRepository.findAllByUserId(userId, PageRequest.of(page, size));
+        Page<TransactionEntity> entities = jpaRepository.findAllByUserId(userId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
         return toTransactionPage(entities, page, size);
     }
 
     @Override
     public TransactionPage findAllByUserIdAndCategory(UUID userId, Category category, int page, int size) {
-        Page<TransactionEntity> entities = jpaRepository.findAllByUserIdAndCategory(userId, category, PageRequest.of(page, size));
+        Page<TransactionEntity> entities = jpaRepository.findAllByUserIdAndCategory(userId, category, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
         return toTransactionPage(entities, page, size);
     }
 
