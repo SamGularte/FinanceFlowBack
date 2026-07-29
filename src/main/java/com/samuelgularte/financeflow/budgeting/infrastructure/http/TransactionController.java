@@ -2,6 +2,8 @@ package com.samuelgularte.financeflow.budgeting.infrastructure.http;
 
 import com.samuelgularte.financeflow.auth.application.output.MessageResponse;
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetails;
+import com.samuelgularte.financeflow.budgeting.application.output.MonthlyDashboardOutput;
+import com.samuelgularte.financeflow.budgeting.application.usecase.GetMonthlyDashboardUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.TextRequest;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
@@ -44,6 +46,7 @@ public class TransactionController {
     private final FetchUserTransactionsUseCase fetchUserTransactionsUseCase;
     private final UpdateTransactionUseCase updateTransactionUseCase;
     private final DeleteTransactionUseCase deleteTransactionUseCase;
+    private final GetMonthlyDashboardUseCase getMonthlyDashboardUseCase;
     private final TransactionPageMapper pageMapper;
 
     public TransactionController(ProcessTextUseCase processTextUseCase,
@@ -52,6 +55,7 @@ public class TransactionController {
                                  FetchUserTransactionsUseCase fetchUserTransactionsUseCase,
                                  UpdateTransactionUseCase updateTransactionUseCase,
                                  DeleteTransactionUseCase deleteTransactionUseCase,
+                                 GetMonthlyDashboardUseCase getMonthlyDashboardUseCase,
                                  TransactionPageMapper pageMapper) {
         this.processTextUseCase = processTextUseCase;
         this.processAudioUseCase = processAudioUseCase;
@@ -59,6 +63,7 @@ public class TransactionController {
         this.fetchUserTransactionsUseCase = fetchUserTransactionsUseCase;
         this.updateTransactionUseCase = updateTransactionUseCase;
         this.deleteTransactionUseCase = deleteTransactionUseCase;
+        this.getMonthlyDashboardUseCase = getMonthlyDashboardUseCase;
         this.pageMapper = pageMapper;
     }
 
@@ -115,5 +120,15 @@ public class TransactionController {
         log.info("Deleting transaction id={}, userId={}", id, userDetails.getUserId());
         deleteTransactionUseCase.execute(id, userDetails.getUserId());
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/dashboard/monthly")
+    public ResponseEntity<MonthlyDashboardOutput> monthlyDashboard(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
+        log.info("Fetching monthly dashboard for userId={}, year={}, month={}", userDetails.getUserId(), year, month);
+        var dashboard = getMonthlyDashboardUseCase.execute(userDetails.getUserId(), year, month);
+        return ResponseEntity.ok(MonthlyDashboardOutput.from(dashboard));
     }
 }

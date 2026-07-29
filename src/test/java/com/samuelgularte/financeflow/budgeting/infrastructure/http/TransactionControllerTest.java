@@ -6,10 +6,12 @@ import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDeta
 import com.samuelgularte.financeflow.auth.infrastructure.security.CustomUserDetailsService;
 import com.samuelgularte.financeflow.auth.infrastructure.security.JwtUtils;
 import com.samuelgularte.financeflow.budgeting.application.usecase.request.UpdateTransactionRequest;
+import com.samuelgularte.financeflow.budgeting.application.output.MonthlyDashboardOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionOutput;
 import com.samuelgularte.financeflow.budgeting.application.output.TransactionPageMapper;
 import com.samuelgularte.financeflow.budgeting.application.usecase.DeleteTransactionUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.FetchUserTransactionsUseCase;
+import com.samuelgularte.financeflow.budgeting.application.usecase.GetMonthlyDashboardUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessAudioUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessImageUseCase;
 import com.samuelgularte.financeflow.budgeting.application.usecase.ProcessTextUseCase;
@@ -17,6 +19,9 @@ import com.samuelgularte.financeflow.budgeting.application.usecase.UpdateTransac
 import com.samuelgularte.financeflow.budgeting.domain.Category;
 import com.samuelgularte.financeflow.budgeting.domain.Transaction;
 import com.samuelgularte.financeflow.budgeting.domain.TransactionPage;
+import com.samuelgularte.financeflow.budgeting.domain.dashboard.CategorySpending;
+import com.samuelgularte.financeflow.budgeting.domain.dashboard.DailySpending;
+import com.samuelgularte.financeflow.budgeting.domain.dashboard.MonthlyDashboard;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,6 +84,9 @@ class TransactionControllerTest {
 
     @MockitoBean
     private DeleteTransactionUseCase deleteTransactionUseCase;
+
+    @MockitoBean
+    private GetMonthlyDashboardUseCase getMonthlyDashboardUseCase;
 
     @MockitoBean
     private CookieUtils cookieUtils;
@@ -272,6 +280,47 @@ class TransactionControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"text\":\"\"}"))
                     .andExpect(status().isBadRequest());
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /transactions/dashboard/monthly")
+    class GetDashboard {
+
+        @Test
+        @DisplayName("should return 200 with dashboard data")
+        void shouldReturnDashboard() throws Exception {
+            var dashboard = new MonthlyDashboard(
+                    BigDecimal.valueOf(5000, 2), 10, BigDecimal.valueOf(500, 2), BigDecimal.valueOf(4000, 2),
+                    List.of(new CategorySpending(Category.SUPERMARKET, BigDecimal.valueOf(3000, 2), 60.0)),
+                    List.of(new DailySpending(1, BigDecimal.valueOf(2000, 2))),
+                    List.of()
+            );
+            when(getMonthlyDashboardUseCase.execute(eq(userId), eq(null), eq(null))).thenReturn(dashboard);
+
+            mockMvc.perform(get("/transactions/dashboard/monthly")
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.totalSpent").value(50.00))
+                    .andExpect(jsonPath("$.totalTransactions").value(10))
+                    .andExpect(jsonPath("$.byCategory[0].category").value("SUPERMARKET"))
+                    .andExpect(jsonPath("$.dailyBreakdown[0].day").value(1));
+        }
+
+        @Test
+        @DisplayName("should pass year and month params to use case")
+        void shouldPassYearAndMonthParams() throws Exception {
+            var dashboard = new MonthlyDashboard(
+                    BigDecimal.ZERO, 0, BigDecimal.ZERO, BigDecimal.ZERO,
+                    List.of(), List.of(), List.of()
+            );
+            when(getMonthlyDashboardUseCase.execute(eq(userId), eq(2026), eq(7))).thenReturn(dashboard);
+
+            mockMvc.perform(get("/transactions/dashboard/monthly")
+                            .param("year", "2026")
+                            .param("month", "7")
+                            .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
+                    .andExpect(status().isOk());
         }
     }
 }
