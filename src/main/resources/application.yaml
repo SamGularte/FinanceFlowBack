@@ -32,6 +32,11 @@ spring:
           starttls:
             enable: true
 
+management:
+  health:
+    mail:
+      enabled: false
+
 logging:
   level:
     com.samuelgularte: DEBUG

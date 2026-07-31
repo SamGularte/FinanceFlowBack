@@ -33,7 +33,7 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests((requests) -> requests
-                        .requestMatchers("/auth/public/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/auth/public/**", "/swagger-ui/**", "/v3/api-docs/**", "/actuator/health/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers
