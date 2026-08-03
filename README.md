@@ -14,7 +14,7 @@ This project was created to deepen knowledge and practice with Spring Boot, Java
 | Auth | JWT (jjwt 0.12.6), BCrypt, HttpOnly cookies |
 | AI | Google Gemini via Spring AI 2.0.0 |
 | Docs | SpringDoc OpenAPI 3.0.2 (Swagger UI) |
-| Email | Spring Mail (SMTP) |
+| Email | Brevo Transactional Email API |
 | Build | Maven |
 
 ## Architecture
@@ -41,6 +41,10 @@ infrastructure/— JPA adapters, HTTP controllers, security
 - CSV export in Brazilian locale (`;` separator, comma decimals)
 
 ## Endpoints
+
+Base URL (deploy): `https://financeflow-ifoj.onrender.com`
+
+All paths below are appended to the base URL. Example: `POST https://financeflow-ifoj.onrender.com/auth/public/signup`
 
 ### Auth (`/auth/public`)
 | Method | Path | Description |
@@ -72,8 +76,10 @@ infrastructure/— JPA adapters, HTTP controllers, security
 | `SPRING_DATASOURCE_USERNAME` | DB user |
 | `SPRING_DATASOURCE_PASSWORD` | DB password |
 | `JWT_SECRET` | 256+ bit secret for JWT signing |
-| `MAIL_EMAIL` | SMTP sender email |
-| `MAIL_PASSWORD` | SMTP app password |
+| `BREVO_API_KEY` | Brevo API key (`xkeysib-...`) for transactional email |
+| `BREVO_SENDER_EMAIL` | Verified sender email in Brevo |
+| `BREVO_SENDER_NAME` | Sender display name (default: `financeflow`) |
+| `BREVO_URL` | Brevo API URL (default: `https://api.brevo.com/v3/smtp/email`) |
 
 ## Running
 
@@ -85,11 +91,11 @@ infrastructure/— JPA adapters, HTTP controllers, security
 ./mvnw spring-boot:run
 ```
 
-Swagger UI: `http://localhost:8080/swagger-ui.html`
+Swagger UI: `http://localhost:8080/swagger-ui.html` or `https://financeflow-ifoj.onrender.com/swagger-ui.html`
 
 ## Tests
 
-185 tests (unit + integration), H2 in-memory database for test profile.
+187 tests (unit + integration), H2 in-memory database for test profile.
 
 ```bash
 ./mvnw test
