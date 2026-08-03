@@ -18,10 +18,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
     "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
     "spring.jpa.hibernate.ddl-auto=create-drop",
     "spring.app.jwtSecret=test",
-    "spring.mail.host=smtp.gmail.com",
-    "spring.mail.port=587",
-    "spring.mail.username=test",
-    "spring.mail.password=test"
+    "brevo.api-key=test-key",
+    "brevo.url=https://api.brevo.com/v3/smtp/email",
+    "brevo.sender.name=financeflow",
+    "brevo.sender.email=test@example.com"
 })
 @EnabledIfEnvironmentVariable(named = "GEMINI_API_KEY", matches = ".+")
 class GeminiConnectionTest {

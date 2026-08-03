@@ -20,25 +20,13 @@ spring:
   app:
     jwtSecret: ${JWT_SECRET}
     jwtExpirationMs: 900000
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_EMAIL}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          connectiontimeout: 5000
-          timeout: 5000
-          writetimeout: 5000
 
-management:
-  health:
-    mail:
-      enabled: false
+brevo:
+  api-key: ${BREVO_API_KEY}
+  url: ${BREVO_URL:https://api.brevo.com/v3/smtp/email}
+  sender:
+    name: ${BREVO_SENDER_NAME:financeflow}
+    email: ${BREVO_SENDER_EMAIL}
 
 logging:
   level:
